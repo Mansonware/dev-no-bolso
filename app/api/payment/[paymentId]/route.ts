@@ -38,6 +38,10 @@ export async function GET(
       );
     }
 
+    // Registra a vaga preenchida no Redis de forma idempotente
+    const { recordApprovedPayment } = await import("@/lib/redis");
+    await recordApprovedPayment(validation.paymentId);
+
     return NextResponse.json({
       valid: true,
       status: "approved",

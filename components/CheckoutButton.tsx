@@ -8,6 +8,7 @@ interface CheckoutButtonProps {
   className?: string;
   size?: "default" | "large" | "compact";
   id?: string;
+  soldOut?: boolean;
 }
 
 export function CheckoutButton({
@@ -15,6 +16,7 @@ export function CheckoutButton({
   className = "",
   size = "large",
   id = "cta-checkout-button",
+  soldOut = false,
 }: CheckoutButtonProps) {
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -54,6 +56,21 @@ export function CheckoutButton({
     default: "py-3.5 px-6 text-sm sm:text-base font-extrabold",
     large: "py-4 sm:py-5 px-6 sm:px-8 text-base sm:text-lg font-black tracking-tight",
   }[size];
+
+  if (soldOut) {
+    return (
+      <div className="w-full">
+        <button
+          id={id}
+          disabled
+          className={`w-full inline-flex items-center justify-center gap-2 bg-white/5 border border-rose-500/30 text-rose-400 font-bold rounded-xl cursor-not-allowed opacity-80 ${sizeClasses} ${className}`}
+        >
+          <Lock className="w-4 h-4" />
+          <span>TURMA ESGOTADA (15/15 VAGAS)</span>
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full">

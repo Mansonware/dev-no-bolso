@@ -2,8 +2,11 @@
 
 import Link from "next/link";
 import { Terminal, Sparkles } from "lucide-react";
+import { useSpots } from "@/lib/useSpots";
 
 export function Navbar() {
+  const { remaining, soldOut } = useSpots();
+
   return (
     <header className="sticky top-0 z-40 w-full border-b border-white/5 bg-[#050807]/85 backdrop-blur-md">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
@@ -20,9 +23,11 @@ export function Navbar() {
         {/* Badge Turma Fundadora */}
         <div className="flex items-center gap-3">
           <div className="inline-flex items-center gap-2 px-2.5 sm:px-3 py-1 rounded-full bg-[#0A0F0D] border border-white/10 text-[11px] sm:text-xs font-semibold text-slate-300">
-            <span className="w-2 h-2 rounded-full bg-[#00FF88] animate-pulse" />
+            <span className={`w-2 h-2 rounded-full ${soldOut ? "bg-rose-500" : "bg-[#00FF88] animate-pulse"}`} />
             <span className="hidden xs:inline">TURMA FUNDADORA •</span>
-            <span className="text-[#00FF88]">15 VAGAS</span>
+            <span className={soldOut ? "text-rose-400 font-bold" : "text-[#00FF88] font-bold"}>
+              {soldOut ? "ESGOTADO" : `${remaining} VAGAS`}
+            </span>
           </div>
 
           <a

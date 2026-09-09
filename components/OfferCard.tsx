@@ -2,6 +2,7 @@
 
 import { Check, ShieldCheck, Users, Sparkles } from "lucide-react";
 import { CheckoutButton } from "./CheckoutButton";
+import { useSpots } from "@/lib/useSpots";
 
 const includesList = [
   "3 aulas práticas online",
@@ -13,6 +14,8 @@ const includesList = [
 ];
 
 export function OfferCard() {
+  const { remaining, total, soldOut } = useSpots();
+
   return (
     <section id="oferta" className="py-20 sm:py-28 relative scroll-mt-10">
       {/* Luz central para destacar a oferta */}
@@ -28,7 +31,9 @@ export function OfferCard() {
             Garanta seu acesso agora
           </h2>
           <p className="mt-2 text-sm text-slate-400">
-            Apenas 15 vagas abertas para a primeira turma com suporte direto.
+            {soldOut
+              ? "Todas as vagas da Turma Fundadora foram preenchidas."
+              : `Restam apenas ${remaining} de ${total} vagas abertas para a primeira turma com suporte direto.`}
           </p>
         </div>
 
@@ -46,7 +51,9 @@ export function OfferCard() {
             </div>
             <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#0D1512] border border-white/10 text-xs text-slate-300 font-semibold self-start sm:self-auto">
               <Users className="w-3.5 h-3.5 text-[#00FF88]" />
-              <span>15 vagas iniciais</span>
+              <span className={soldOut ? "text-rose-400 font-bold" : "text-slate-200"}>
+                {soldOut ? "Esgotado" : `${remaining} de ${total} vagas`}
+              </span>
             </div>
           </div>
 
@@ -92,6 +99,7 @@ export function OfferCard() {
               id="offer-section-cta"
               label="GARANTIR MINHA VAGA — R$20"
               size="large"
+              soldOut={soldOut}
             />
             <div className="flex items-center justify-center gap-2 text-xs text-slate-400">
               <ShieldCheck className="w-4 h-4 text-[#00FF88]" />
