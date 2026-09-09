@@ -1,6 +1,7 @@
 import { Redis } from "@upstash/redis";
 
 export const TOTAL_SPOTS = 15;
+export const MANUAL_APPROVED_SPOTS = 1;
 
 export const REDIS_KEYS = {
   APPROVED_PAYMENTS: "dev_no_bolso:turma_01:approved_payments",
@@ -37,23 +38,26 @@ export function getRedisClient(): Redis | null {
 }
 
 /**
- * Consulta a contagem de vagas em tempo real no Upstash Redis
+ * Consulta a contagem de vagas em tempo real no Upstash Redis.
+ * Soma vendas online aprovadas + vendas confirmadas manualmente (ex.: dinheiro físico).
  */
 export async function getSpotsStatus(): Promise<SpotsStatus> {
   const redis = getRedisClient();
 
   if (!redis) {
-    // Modo de fallback seguro caso o Redis ainda não tenha sido vinculado
+    const approved = MANUAL_APPROVED_SPOTS;
+    const remaining = Math.max(0, TOTAL_SPOTS - approved);
     return {
       total: TOTAL_SPOTS,
-      approved: 0,
-      remaining: TOTAL_SPOTS,
-      soldOut: false,
+      approved,
+      remaining,
+      soldOut: remaining <= 0,
     };
   }
 
   try {
-    const approvedCount = await redis.scard(REDIS_KEYS.APPROVED_PAYMENTS);
+    const onlineApprovedCount = await redis.scard(REDIS_KEYS.APPROVED_PAYMENTS);
+    const approvedCount = onlineApprovedCount + MANUAL_APPROVED_SPOTS;
     const remaining = Math.max(0, TOTAL_SPOTS - approvedCount);
     return {
       total: TOTAL_SPOTS,
@@ -63,11 +67,13 @@ export async function getSpotsStatus(): Promise<SpotsStatus> {
     };
   } catch (error) {
     console.error("[Redis Error] Falha ao consultar vagas:", error);
+    const approved = MANUAL_APPROVED_SPOTS;
+    const remaining = Math.max(0, TOTAL_SPOTS - approved);
     return {
       total: TOTAL_SPOTS,
-      approved: 0,
-      remaining: TOTAL_SPOTS,
-      soldOut: false,
+      approved,
+      remaining,
+      soldOut: remaining <= 0,
     };
   }
 }
