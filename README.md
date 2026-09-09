@@ -1,36 +1,53 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# DEV NO BOLSO — Turma Fundadora #01
 
-## Getting Started
+Landing page de alta conversão para o treinamento **DEV NO BOLSO**, desenvolvida com Next.js (App Router), TypeScript, Tailwind CSS, integração com Checkout Pro do Mercado Pago e deploy na Vercel.
 
-First, run the development server:
+## 🚀 Tecnologias
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+- **Framework**: Next.js 16 (App Router, Turbopack)
+- **Linguagem**: TypeScript
+- **Estilização**: Tailwind CSS v4 (Design Dark Tecnológico)
+- **Ícones**: Lucide React
+- **Processamento de Pagamentos**: Mercado Pago Checkout Pro
+- **Hospedagem & CI/CD**: Vercel
+
+## ⚙️ Variáveis de Ambiente
+
+Crie um arquivo `.env.local` na raiz baseado no `.env.example`:
+
+```env
+# Access Token oficial do Mercado Pago (produção ou teste)
+MERCADOPAGO_ACCESS_TOKEN=APP_USR-...
+
+# WhatsApp da Administração (formato internacional somente com dígitos)
+NEXT_PUBLIC_ADMIN_WHATSAPP=5512991070038
+
+# URL Base do site (usada para back_urls e webhooks)
+NEXT_PUBLIC_SITE_URL=https://dev-no-bolso.vercel.app
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+> **Aviso de Segurança:** Nunca versione arquivos `.env.local` ou credenciais privadas no repositório.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 📦 Como Rodar Localmente
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+1. Instale as dependências:
+   ```bash
+   npm install
+   ```
 
-## Learn More
+2. Execute o servidor de desenvolvimento:
+   ```bash
+   npm run dev
+   ```
 
-To learn more about Next.js, take a look at the following resources:
+3. Abra [http://localhost:3000](http://localhost:3000) no seu navegador.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 🛡️ Fluxo de Pagamento e Segurança
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+1. **Backend**: O preço de R$ 20,00 é fixado estritamente no servidor (`lib/mercadopago.ts`), tornando impossível qualquer manipulação de preço pelo cliente.
+2. **Checkout Pro**: Ao clicar em "Garantir Minha Vaga", o backend gera uma preferência oficial na API do Mercado Pago e redireciona o usuário.
+3. **Validação Server-Side**: A página de retorno não confia em query params (`?status=approved`). Ela consulta diretamente a API do Mercado Pago via `GET /api/payment/[paymentId]` e valida valor, moeda, status e referência antes de exibir a confirmação e abrir o WhatsApp da administração.
 
-## Deploy on Vercel
+## 📄 Licença
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Uso exclusivo do projeto DEV NO BOLSO.
