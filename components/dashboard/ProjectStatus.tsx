@@ -1,9 +1,16 @@
-import { ArrowRight, Check, Globe } from "lucide-react";
+import Link from "next/link";
+import { ArrowRight, Check, ChevronRight, Globe } from "lucide-react";
 import type { project as Project } from "@/lib/mock/aluno";
 
-type Props = { project: typeof Project };
+type Props = {
+  project: typeof Project;
+  /** Aula que destrava a etapa atual do projeto. */
+  lessonHref: string;
+  /** Quando definido, o título do card leva para a página do projeto. */
+  detailsHref?: string;
+};
 
-export function ProjectStatus({ project }: Props) {
+export function ProjectStatus({ project, lessonHref, detailsHref }: Props) {
   const doneCount = project.steps.filter((s) => s.status === "feito").length;
 
   return (
@@ -14,7 +21,14 @@ export function ProjectStatus({ project }: Props) {
     >
       <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
         <h2 id="projeto-titulo" className="text-sm font-semibold text-slate-300">
-          Meu primeiro projeto
+          {detailsHref ? (
+            <Link href={detailsHref} className="inline-flex items-center gap-1 hover:text-[#F5F7F6] transition-colors">
+              Meu primeiro projeto
+              <ChevronRight className="w-4 h-4" aria-hidden />
+            </Link>
+          ) : (
+            "Meu primeiro projeto"
+          )}
         </h2>
         <span
           className={`inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[11px] font-semibold ${
@@ -88,13 +102,13 @@ export function ProjectStatus({ project }: Props) {
         })}
       </ol>
 
-      <a
-        href="#trilha"
+      <Link
+        href={lessonHref}
         className="mt-5 inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-white/15 text-sm font-semibold text-[#F5F7F6] transition-colors hover:border-[#00FF88]/50 hover:bg-white/[0.03]"
       >
         Ativar o GitHub Pages agora
         <ArrowRight className="w-4 h-4" aria-hidden />
-      </a>
+      </Link>
     </section>
   );
 }

@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { Check, ChevronDown, Lock, Play } from "lucide-react";
-import type { Module } from "@/lib/mock/aluno";
+import Link from "next/link";
+import { Check, ChevronDown, ChevronRight, Lock, Play } from "lucide-react";
+import { lessonHref, lessonNumber, type Lesson, type Module } from "@/lib/mock/aluno";
 
 export function ModuleList({ modules }: { modules: Module[] }) {
   const current = modules.find((m) => m.lessons.some((l) => l.status === "atual"));
@@ -59,40 +60,7 @@ export function ModuleList({ modules }: { modules: Module[] }) {
                 <ol id={`${m.id}-aulas`} className="pb-3">
                   {m.lessons.map((l, i) => (
                     <li key={l.id}>
-                      <div
-                        className={`mx-2 sm:mx-3 flex items-center gap-3 rounded-xl px-3 py-3 ${
-                          l.status === "atual" ? "bg-white/[0.05]" : ""
-                        }`}
-                      >
-                        <span
-                          className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full ${
-                            l.status === "feita"
-                              ? "bg-[#00FF88]/10 text-[#00FF88]"
-                              : l.status === "atual"
-                                ? "bg-[#00FF88] text-[#050807]"
-                                : "bg-white/[0.04] text-slate-600"
-                          }`}
-                        >
-                          {l.status === "feita" && <Check className="w-3.5 h-3.5" aria-hidden />}
-                          {l.status === "atual" && <Play className="w-3 h-3 fill-current" aria-hidden />}
-                          {l.status === "bloqueada" && <Lock className="w-3 h-3" aria-hidden />}
-                        </span>
-                        <span className="min-w-0 flex-1">
-                          <span
-                            className={`flex text-sm ${
-                              l.status === "bloqueada"
-                                ? "text-slate-500"
-                                : l.status === "atual"
-                                  ? "font-semibold text-[#F5F7F6]"
-                                  : "text-slate-300"
-                            }`}
-                          >
-                            <span className="w-6 shrink-0 font-mono text-slate-600">{i + 1}.</span>
-                            <span>{l.title}</span>
-                          </span>
-                          <span className="mt-0.5 block pl-6 text-[12.5px] text-slate-500">{l.objective}</span>
-                        </span>
-                      </div>
+                      <LessonRow lesson={l} index={i} />
                     </li>
                   ))}
                 </ol>
@@ -102,5 +70,60 @@ export function ModuleList({ modules }: { modules: Module[] }) {
         })}
       </ul>
     </section>
+  );
+}
+
+function LessonRow({ lesson: l, index: i }: { lesson: Lesson; index: number }) {
+  const isLocked = l.status === "bloqueada";
+
+  const inner = (
+    <>
+      <span
+        className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full ${
+          l.status === "feita"
+            ? "bg-[#00FF88]/10 text-[#00FF88]"
+            : l.status === "atual"
+              ? "bg-[#00FF88] text-[#050807]"
+              : "bg-white/[0.04] text-slate-600"
+        }`}
+      >
+        {l.status === "feita" && <Check className="w-3.5 h-3.5" aria-hidden />}
+        {l.status === "atual" && <Play className="w-3 h-3 fill-current" aria-hidden />}
+        {isLocked && <Lock className="w-3 h-3" aria-hidden />}
+      </span>
+      <span className="min-w-0 flex-1">
+        <span
+          className={`flex text-sm ${
+            isLocked ? "text-slate-500" : l.status === "atual" ? "font-semibold text-[#F5F7F6]" : "text-slate-300"
+          }`}
+        >
+          <span className="w-6 shrink-0 font-mono text-slate-600">{i + 1}.</span>
+          <span>{l.title}</span>
+        </span>
+        <span className="mt-0.5 block pl-6 text-[12.5px] text-slate-500">
+          {isLocked ? "Bloqueada · libera quando a aula anterior for concluída" : l.objective}
+        </span>
+      </span>
+      {!isLocked && <ChevronRight className="w-4 h-4 shrink-0 text-slate-600" aria-hidden />}
+    </>
+  );
+
+  const base = "mx-2 sm:mx-3 flex items-center gap-3 rounded-xl px-3 py-3";
+
+  if (isLocked) {
+    return (
+      <div aria-disabled="true" className={`${base} cursor-not-allowed opacity-70`} title="Aula bloqueada">
+        {inner}
+      </div>
+    );
+  }
+
+  return (
+    <Link
+      href={lessonHref(lessonNumber(l.id))}
+      className={`${base} transition-colors hover:bg-white/[0.04] ${l.status === "atual" ? "bg-white/[0.05]" : ""}`}
+    >
+      {inner}
+    </Link>
   );
 }

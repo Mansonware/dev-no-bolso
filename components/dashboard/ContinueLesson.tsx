@@ -1,9 +1,10 @@
+import Link from "next/link";
 import { ArrowRight, Check, Lock } from "lucide-react";
 import type { currentLesson as CurrentLesson } from "@/lib/mock/aluno";
 
-type Props = { lesson: typeof CurrentLesson; lessonIndex: number; lessonCount: number };
+type Props = { lesson: typeof CurrentLesson; lessonIndex: number; lessonCount: number; href: string };
 
-export function ContinueLesson({ lesson, lessonIndex, lessonCount }: Props) {
+export function ContinueLesson({ lesson, lessonIndex, lessonCount, href }: Props) {
   return (
     <section
       aria-labelledby="continuar-titulo"
@@ -53,13 +54,13 @@ export function ContinueLesson({ lesson, lessonIndex, lessonCount }: Props) {
         </ol>
 
         <div className="mt-7 flex flex-col-reverse gap-3 sm:flex-row sm:items-center">
-          <a
-            href="#trilha"
+          <Link
+            href={href}
             className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-[#00FF88] px-6 text-[15px] font-bold text-[#050807] transition-colors hover:bg-[#33FFA0] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#00FF88] focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0F0D]"
           >
             Continuar missão
             <ArrowRight className="w-4 h-4" aria-hidden />
-          </a>
+          </Link>
           <span className="text-sm text-slate-400 sm:ml-2">{lesson.moduleTitle}</span>
         </div>
       </div>

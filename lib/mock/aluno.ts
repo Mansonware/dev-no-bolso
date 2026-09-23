@@ -110,3 +110,34 @@ export function progressStats() {
   const done = all.filter((l) => l.status === "feita").length;
   return { done, total: all.length, percent: Math.round((done / all.length) * 100) };
 }
+
+// ---------------------------------------------------------------------------
+// Navegação entre aulas (mock). Aulas são numeradas globalmente: /aluno/aulas/1..N
+
+export const allLessons = modules.flatMap((m) =>
+  m.lessons.map((l) => ({ ...l, moduleNumber: m.number, moduleTitle: m.title }))
+);
+
+export function lessonNumber(lessonId: string) {
+  return allLessons.findIndex((l) => l.id === lessonId) + 1;
+}
+
+export function getLesson(n: number) {
+  return allLessons[n - 1] ?? null;
+}
+
+export function currentLessonNumber() {
+  return allLessons.findIndex((l) => l.status === "atual") + 1;
+}
+
+export function lessonHref(n: number) {
+  return `/aluno/aulas/${n}`;
+}
+
+// MOCK — etapas da aula. Conteúdo definitivo será escrito após o Gate em Android físico.
+export type StageId = "teoria" | "missao" | "validacao";
+export const lessonStages: { id: StageId; label: string }[] = [
+  { id: "teoria", label: "Teoria" },
+  { id: "missao", label: "Missão" },
+  { id: "validacao", label: "Validação" },
+];
