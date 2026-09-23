@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ArrowRight, Check, ExternalLink, FilePlus, FolderGit2, Info, ListChecks, Sparkles, Smartphone } from "lucide-react";
 import { LessonShell, stageStates } from "./LessonShell";
 import type { LessonStatus, StageId } from "@/lib/mock/aluno";
+import { validateStudentUrl } from "@/lib/validateStudentUrl";
 
 // ============================================================================
 // VALIDAÇÃO: validado-emulacao — testado em viewport Chrome Android (Pixel 8)
@@ -44,7 +45,8 @@ export function Lesson2({ lessonStatus }: { lessonStatus: LessonStatus }) {
   const completedStepsCount = Object.values(checkedSteps).filter(Boolean).length;
 
   const [repoUrl, setRepoUrl] = useState("");
-  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [submittedUrl, setSubmittedUrl] = useState<string | null>(null);
+  const [urlError, setUrlError] = useState<string | null>(null);
 
   return (
     <LessonShell
@@ -240,24 +242,35 @@ export function Lesson2({ lessonStatus }: { lessonStatus: LessonStatus }) {
                 value={repoUrl}
                 onChange={(e) => {
                   setRepoUrl(e.target.value);
-                  setIsSubmitted(false);
+                  setSubmittedUrl(null);
+                  setUrlError(null);
                 }}
-                placeholder="github.com/anadev/meu-primeiro-site"
+                aria-invalid={urlError ? true : undefined}
+                aria-describedby={urlError ? "repo-input-error" : undefined}
+                placeholder="https://github.com/anadev/meu-primeiro-site"
                 className="h-11 flex-1 rounded-xl border border-white/15 bg-[#0A0F0D] px-3.5 text-sm font-mono text-[#F5F7F6] placeholder-slate-600 focus:border-[#00FF88] focus:outline-none focus:ring-1 focus:ring-[#00FF88]"
               />
 
               <button
                 type="button"
                 onClick={() => {
-                  if (repoUrl.trim()) setIsSubmitted(true);
+                  const result = validateStudentUrl(repoUrl);
+                  setSubmittedUrl(result.ok ? result.url : null);
+                  setUrlError(result.ok ? null : result.error);
                 }}
                 className="h-11 inline-flex items-center justify-center gap-2 rounded-xl bg-[#00FF88] px-5 text-sm font-bold text-[#050807] transition-all hover:bg-[#33FFA0] active:scale-[0.98]"
               >
-                <span>{isSubmitted ? "Repositório registrado nesta sessão" : "Registrar repositório nesta sessão"}</span>
+                <span>{submittedUrl ? "Repositório registrado nesta sessão" : "Registrar repositório nesta sessão"}</span>
               </button>
             </div>
 
-            {isSubmitted && repoUrl.trim() && (
+            {urlError && (
+              <p id="repo-input-error" role="alert" className="mt-2 text-xs text-red-400">
+                {urlError}
+              </p>
+            )}
+
+            {submittedUrl && (
               <div className="mt-4 rounded-xl border border-white/10 bg-white/[0.02] p-4 animate-in fade-in duration-300">
                 <p className="text-xs text-slate-300">
                   Repositório informado registrado localmente nesta sessão. Você pode abrir o link para conferir se o
@@ -265,7 +278,7 @@ export function Lesson2({ lessonStatus }: { lessonStatus: LessonStatus }) {
                 </p>
                 <div className="mt-3 flex flex-wrap items-center gap-3">
                   <a
-                    href={repoUrl.startsWith("http") ? repoUrl : `https://${repoUrl}`}
+                    href={submittedUrl}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-1.5 rounded-lg bg-[#00FF88] px-3.5 py-2 text-xs font-bold text-[#050807] hover:bg-[#33FFA0] transition-colors"
