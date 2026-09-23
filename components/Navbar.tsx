@@ -37,6 +37,13 @@ export function Navbar() {
             <Sparkles className="w-3.5 h-3.5 text-[#00FF88]" />
             Garantir Vaga
           </a>
+
+          <Link
+            href="/login"
+            className="inline-flex items-center text-xs font-bold px-3 py-1.5 rounded-lg text-[#F5F7F6] hover:text-[#00FF88] transition-colors"
+          >
+            Entrar
+          </Link>
         </div>
       </div>
     </header>

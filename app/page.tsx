@@ -9,7 +9,8 @@ import { StickyMobileCta } from "@/components/StickyMobileCta";
 import { Footer } from "@/components/Footer";
 import { CheckoutButton } from "@/components/CheckoutButton";
 import { HeroSpotsBadge } from "@/components/HeroSpotsBadge";
-import { ShieldCheck, Sparkles, Terminal, Smartphone, Zap } from "lucide-react";
+import Link from "next/link";
+import { ArrowRight, ShieldCheck, Sparkles, Terminal, Smartphone, Zap } from "lucide-react";
 
 export default function HomePage() {
   return (
@@ -61,6 +62,16 @@ export default function HomePage() {
                   <ShieldCheck className="w-4 h-4 text-[#00FF88]" />
                   <span>Pagamento seguro via Mercado Pago</span>
                 </div>
+
+                {/* Acesso à nova plataforma (auth ainda é MOCK) — não substitui o checkout acima */}
+                <Link
+                  id="hero-signup-link"
+                  href="/cadastro"
+                  className="flex w-full items-center justify-center gap-2 rounded-xl border border-white/15 px-6 py-3 text-sm font-bold text-[#F5F7F6] hover:border-[#00FF88]/50 hover:text-[#00FF88] transition-colors"
+                >
+                  Criar minha conta na plataforma
+                  <ArrowRight className="w-4 h-4" aria-hidden />
+                </Link>
               </div>
 
               {/* Micro badges de garantia */}
