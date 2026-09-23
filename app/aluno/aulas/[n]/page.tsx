@@ -71,8 +71,25 @@ export default async function AulaPage({ params }: Props) {
           <p className="mt-1 text-sm text-slate-400">Ela libera quando a aula anterior for concluída.</p>
         </section>
       ) : (
-        <LessonStages lessonStatus={lesson.status} />
+        <LessonStages lessonStatus={lesson.status} lessonNumber={number} />
       )}
+
+      {/* Navegação Inferior de Apoio */}
+      <footer className="mt-10 pt-6 border-t border-white/[0.06] flex flex-col sm:flex-row items-center justify-between gap-4">
+        <Link
+          href="/aluno/trilha"
+          className="inline-flex items-center gap-2 text-sm font-semibold text-slate-400 hover:text-[#F5F7F6]"
+        >
+          <ArrowLeft className="w-4 h-4" aria-hidden />
+          Voltar para a Trilha
+        </Link>
+        <Link
+          href="/aluno/projeto"
+          className="text-xs font-mono text-slate-500 hover:text-[#00FF88] transition-colors"
+        >
+          Ver status de meu-primeiro-site →
+        </Link>
+      </footer>
     </div>
   );
 }

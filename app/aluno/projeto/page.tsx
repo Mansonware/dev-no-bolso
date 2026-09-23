@@ -46,6 +46,9 @@ export default function ProjetoPage() {
                 Aula atual · {n}
               </span>
               <span className="mt-1 block text-[15px] font-semibold">{lesson.title}</span>
+              <span className="mt-1 block text-xs text-slate-400">
+                <span className="font-mono text-[#00FF88]">próximo objetivo ›</span> {lesson.objective}
+              </span>
             </span>
             <ArrowRight className="w-4 h-4 shrink-0 text-[#00FF88]" aria-hidden />
           </Link>
