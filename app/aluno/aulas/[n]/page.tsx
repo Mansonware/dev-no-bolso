@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, Lock } from "lucide-react";
+import { ArrowLeft, ArrowRight, Lock } from "lucide-react";
 import { LessonStages } from "@/components/dashboard/LessonStages";
-import { allLessons, getLesson } from "@/lib/mock/aluno";
+import { conteudoModulo01 } from "@/lib/aulas/modulo-01";
+import { allLessons, getLesson, lessonHref } from "@/lib/mock/aluno";
 
 export const dynamicParams = false;
 
@@ -27,6 +28,7 @@ export default async function AulaPage({ params }: Props) {
 
   const total = allLessons.length;
   const isLocked = lesson.status === "bloqueada";
+  const next = getLesson(number + 1);
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-6 sm:px-6 lg:px-10 lg:py-10">
@@ -64,14 +66,29 @@ export default async function AulaPage({ params }: Props) {
         </div>
       </header>
 
-      {isLocked ? (
-        <section className="mt-8 rounded-2xl border border-dashed border-white/10 px-5 py-8 text-center">
-          <Lock className="mx-auto w-6 h-6 text-slate-500" aria-hidden />
-          <p className="mt-3 text-[15px] font-semibold">Aula bloqueada</p>
-          <p className="mt-1 text-sm text-slate-400">Ela libera quando a aula anterior for concluída.</p>
-        </section>
-      ) : (
-        <LessonStages lessonStatus={lesson.status} />
+      {/* Sem progresso salvo ainda: o bloqueio é só uma recomendação, o roteiro fica sempre acessível. */}
+      {isLocked && (
+        <p className="mt-6 flex items-start gap-2 rounded-xl border border-dashed border-white/10 px-4 py-3 text-sm text-slate-400">
+          <Lock className="mt-0.5 w-4 h-4 shrink-0 text-slate-500" aria-hidden />
+          Faça esta aula depois de concluir a anterior.
+        </p>
+      )}
+
+      <LessonStages lessonStatus={lesson.status} validacao={lesson.validacao} conteudo={conteudoModulo01[lesson.id]} />
+
+      {next && (
+        <Link
+          href={lessonHref(number + 1)}
+          className="mt-6 flex items-center justify-between gap-4 rounded-2xl border border-white/[0.08] bg-[#0A0F0D] px-5 py-4 transition-colors hover:border-[#00FF88]/40"
+        >
+          <span className="min-w-0">
+            <span className="block font-mono text-[11px] uppercase tracking-[0.18em] text-slate-500">
+              Próxima aula · {number + 1}
+            </span>
+            <span className="mt-1 block text-[15px] font-semibold">{next.title}</span>
+          </span>
+          <ArrowRight className="w-4 h-4 shrink-0 text-[#00FF88]" aria-hidden />
+        </Link>
       )}
     </div>
   );

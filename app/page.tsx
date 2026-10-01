@@ -9,6 +9,7 @@ import { StickyMobileCta } from "@/components/StickyMobileCta";
 import { Footer } from "@/components/Footer";
 import { CheckoutButton } from "@/components/CheckoutButton";
 import { HeroSpotsBadge } from "@/components/HeroSpotsBadge";
+import { OFFER } from "@/lib/offer";
 import { ShieldCheck, Sparkles, Terminal, Smartphone, Zap } from "lucide-react";
 
 export default function HomePage() {
@@ -46,14 +47,15 @@ export default function HomePage() {
 
               {/* Subheadline */}
               <p className="text-base sm:text-lg text-slate-300 leading-relaxed max-w-xl mx-auto lg:mx-0">
-                Aprenda o workflow prático de desenvolvimento que vai da ideia até o deploy, mesmo começando pelo celular.
+                Aprenda o workflow prático que vai da ideia até o deploy, mesmo começando pelo celular. Na prática:
+                você publica o seu primeiro site no GitHub Pages, com link público, e aprende a atualizar ele.
               </p>
 
               {/* Bloco de CTA */}
               <div className="pt-2 max-w-md mx-auto lg:mx-0 space-y-3">
                 <CheckoutButton
                   id="hero-cta-button"
-                  label="GARANTIR MINHA VAGA — R$20"
+                  label={`GARANTIR MINHA VAGA — ${OFFER.priceLabel}`}
                   size="large"
                 />
 

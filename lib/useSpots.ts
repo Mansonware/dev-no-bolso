@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { OFFER } from "./offer";
 
 export interface SpotsInfo {
   total: number;
@@ -12,9 +13,9 @@ export interface SpotsInfo {
 
 export function useSpots(): SpotsInfo {
   const [info, setInfo] = useState<SpotsInfo>({
-    total: 15,
+    total: OFFER.spots,
     approved: 0,
-    remaining: 15,
+    remaining: OFFER.spots,
     soldOut: false,
     loading: true,
   });
@@ -29,7 +30,7 @@ export function useSpots(): SpotsInfo {
           const data = await res.json();
           if (isMounted && typeof data.remaining === "number") {
             setInfo({
-              total: data.total || 15,
+              total: data.total || OFFER.spots,
               approved: data.approved || 0,
               remaining: data.remaining,
               soldOut: data.soldOut || data.remaining <= 0,

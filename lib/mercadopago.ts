@@ -1,3 +1,5 @@
+import { OFFER } from "./offer";
+
 export interface MercadoPagoPreferenceItem {
   id: string;
   title: string;
@@ -28,7 +30,7 @@ export interface MercadoPagoPaymentResponse {
 export const PRODUCT_CONFIG = {
   id: "DEV_NO_BOLSO_TURMA_01",
   title: "DEV NO BOLSO — Turma Fundadora #01",
-  unitPrice: 20,
+  unitPrice: OFFER.price,
   currencyId: "BRL",
   quantity: 1,
   externalReference: "DEV_NO_BOLSO_TURMA_01",

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Loader2, ArrowRight, Lock } from "lucide-react";
+import { OFFER } from "@/lib/offer";
 
 interface CheckoutButtonProps {
   label?: string;
@@ -12,7 +13,7 @@ interface CheckoutButtonProps {
 }
 
 export function CheckoutButton({
-  label = "GARANTIR MINHA VAGA — R$20",
+  label = `GARANTIR MINHA VAGA — ${OFFER.priceLabel}`,
   className = "",
   size = "large",
   id = "cta-checkout-button",
@@ -66,7 +67,7 @@ export function CheckoutButton({
           className={`w-full inline-flex items-center justify-center gap-2 bg-white/5 border border-rose-500/30 text-rose-400 font-bold rounded-xl cursor-not-allowed opacity-80 ${sizeClasses} ${className}`}
         >
           <Lock className="w-4 h-4" />
-          <span>TURMA ESGOTADA (15/15 VAGAS)</span>
+          <span>TURMA ESGOTADA ({OFFER.spots}/{OFFER.spots} VAGAS)</span>
         </button>
       </div>
     );

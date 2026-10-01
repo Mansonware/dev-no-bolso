@@ -1,10 +1,13 @@
 import { Redis } from "@upstash/redis";
+import { OFFER } from "./offer";
 
-export const TOTAL_SPOTS = 15;
-export const MANUAL_APPROVED_SPOTS = 1;
+export const TOTAL_SPOTS = OFFER.spots;
+// Vendas da oferta de R$97 confirmadas fora do Mercado Pago (ex.: Pix direto). Ajustar à mão.
+export const MANUAL_APPROVED_SPOTS = 0;
 
 export const REDIS_KEYS = {
-  APPROVED_PAYMENTS: "dev_no_bolso:turma_01:approved_payments",
+  // Chave nova para a oferta de R$97: vendas anteriores (R$20, chave turma_01) não ocupam estas 10 vagas.
+  APPROVED_PAYMENTS: "dev_no_bolso:fundadora_97:approved_payments",
 } as const;
 
 export interface SpotsStatus {

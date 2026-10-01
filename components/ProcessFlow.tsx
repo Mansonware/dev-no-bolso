@@ -34,7 +34,7 @@ const steps = [
   {
     step: "05",
     name: "INTERNET",
-    desc: "Deploy em produção com HTTPS e domínio",
+    desc: "Site publicado com link público e HTTPS",
     icon: Globe2,
     color: "#00FF88",
   },

@@ -3,9 +3,10 @@
 import Link from "next/link";
 import { Terminal, Sparkles } from "lucide-react";
 import { useSpots } from "@/lib/useSpots";
+import { OFFER } from "@/lib/offer";
 
 export function Navbar() {
-  const { remaining, soldOut } = useSpots();
+  const { soldOut } = useSpots();
 
   return (
     <header className="sticky top-0 z-40 w-full border-b border-white/5 bg-[#050807]/85 backdrop-blur-md">
@@ -26,7 +27,7 @@ export function Navbar() {
             <span className={`w-2 h-2 rounded-full ${soldOut ? "bg-rose-500" : "bg-[#00FF88] animate-pulse"}`} />
             <span className="hidden xs:inline">TURMA FUNDADORA •</span>
             <span className={soldOut ? "text-rose-400 font-bold" : "text-[#00FF88] font-bold"}>
-              {soldOut ? "ESGOTADO" : `${remaining} VAGAS`}
+              {soldOut ? "ESGOTADO" : `${OFFER.spots} VAGAS`}
             </span>
           </div>
 

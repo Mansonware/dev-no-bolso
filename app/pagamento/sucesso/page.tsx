@@ -4,6 +4,7 @@ import { Suspense, useEffect, useState, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { CheckCircle2, AlertTriangle, ShieldCheck, ArrowRight, Loader2, MessageCircle } from "lucide-react";
+import { OFFER } from "@/lib/offer";
 
 interface PaymentStatusState {
   loading: boolean;
@@ -171,7 +172,7 @@ function SuccessContent() {
               </div>
               <div className="flex justify-between items-center py-1 border-b border-white/5 text-xs sm:text-sm">
                 <span className="text-slate-400">Valor Validado:</span>
-                <span className="font-mono font-bold text-[#00FF88]">R$ 20,00</span>
+                <span className="font-mono font-bold text-[#00FF88]">{OFFER.priceFormatted}</span>
               </div>
               <div className="flex justify-between items-center pt-2 text-xs sm:text-sm">
                 <span className="text-slate-400">ID do pagamento:</span>

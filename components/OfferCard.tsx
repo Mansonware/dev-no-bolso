@@ -3,8 +3,10 @@
 import { Check, ShieldCheck, Users, Sparkles } from "lucide-react";
 import { CheckoutButton } from "./CheckoutButton";
 import { useSpots } from "@/lib/useSpots";
+import { OFFER } from "@/lib/offer";
 
 const includesList = [
+  "Roteiro passo a passo: seu primeiro site no ar pelo GitHub Pages",
   "3 aulas práticas online",
   "Acesso completo às gravações",
   "Materiais de apoio",
@@ -14,7 +16,7 @@ const includesList = [
 ];
 
 export function OfferCard() {
-  const { remaining, total, soldOut } = useSpots();
+  const { soldOut } = useSpots();
 
   return (
     <section id="oferta" className="py-20 sm:py-28 relative scroll-mt-10">
@@ -25,7 +27,7 @@ export function OfferCard() {
         <div className="text-center mb-8">
           <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#00FF88]/10 border border-[#00FF88]/30 text-xs font-mono font-bold uppercase tracking-wider text-[#00FF88] mb-3">
             <Sparkles className="w-3.5 h-3.5" />
-            LOTE EXCLUSIVO DE LANÇAMENTO
+            TURMA FUNDADORA • {OFFER.spots} VAGAS
           </div>
           <h2 className="text-3xl sm:text-4xl font-black tracking-tight text-[#F5F7F6]">
             Garanta seu acesso agora
@@ -33,7 +35,7 @@ export function OfferCard() {
           <p className="mt-2 text-sm text-slate-400">
             {soldOut
               ? "Todas as vagas da Turma Fundadora foram preenchidas."
-              : `Restam apenas ${remaining} de ${total} vagas abertas para a primeira turma com suporte direto.`}
+              : `Preço fundador para ${OFFER.spots} vagas, com suporte direto na primeira turma.`}
           </p>
         </div>
 
@@ -52,7 +54,7 @@ export function OfferCard() {
             <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#0D1512] border border-white/10 text-xs text-slate-300 font-semibold self-start sm:self-auto">
               <Users className="w-3.5 h-3.5 text-[#00FF88]" />
               <span className={soldOut ? "text-rose-400 font-bold" : "text-slate-200"}>
-                {soldOut ? "Esgotado" : `${remaining} de ${total} vagas`}
+                {soldOut ? "Esgotado" : `${OFFER.spots} vagas`}
               </span>
             </div>
           </div>
@@ -84,12 +86,12 @@ export function OfferCard() {
             <div className="flex items-baseline gap-2 mt-1">
               <span className="text-2xl font-bold text-slate-400">R$</span>
               <span className="text-5xl sm:text-6xl font-black text-white tracking-tight">
-                20
+                {OFFER.price}
               </span>
               <span className="text-sm text-slate-400 font-mono">• pagamento único</span>
             </div>
             <p className="text-xs text-[#00FF88] font-semibold mt-1">
-              Valor especial da primeira turma.
+              Valor especial das {OFFER.spots} vagas da turma fundadora.
             </p>
           </div>
 
@@ -97,7 +99,7 @@ export function OfferCard() {
           <div className="space-y-3">
             <CheckoutButton
               id="offer-section-cta"
-              label="GARANTIR MINHA VAGA — R$20"
+              label={`GARANTIR MINHA VAGA — ${OFFER.priceLabel}`}
               size="large"
               soldOut={soldOut}
             />

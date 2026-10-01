@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getSpotsStatus } from "@/lib/redis";
+import { getSpotsStatus, TOTAL_SPOTS } from "@/lib/redis";
 
 export const dynamic = "force-dynamic";
 
@@ -16,9 +16,9 @@ export async function GET() {
     console.error("[API /api/spots] Erro:", error);
     return NextResponse.json(
       {
-        total: 15,
+        total: TOTAL_SPOTS,
         approved: 0,
-        remaining: 15,
+        remaining: TOTAL_SPOTS,
         soldOut: false,
       },
       { status: 200 }

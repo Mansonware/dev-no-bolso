@@ -20,6 +20,11 @@ const faqs: FaqItem[] = [
       "Não obrigatoriamente. Parte importante do conteúdo envolve desenvolvimento pelo celular. Um computador amplia as possibilidades, mas não é requisito para começar.",
   },
   {
+    question: "Consigo publicar meu site só pelo celular?",
+    answer:
+      "Esse é o foco. O roteiro de publicação usa só o navegador (Chrome) e uma conta gratuita no GitHub, e foi testado em ambiente móvel emulado (navegador simulando um celular Android). Se algo na sua tela estiver diferente, o suporte da turma te ajuda pelo WhatsApp.",
+  },
+  {
     question: "As aulas ficam gravadas?",
     answer: "Sim. Os participantes terão acesso às gravações da turma.",
   },

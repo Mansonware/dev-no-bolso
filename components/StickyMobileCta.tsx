@@ -3,10 +3,11 @@
 import { useEffect, useState } from "react";
 import { CheckoutButton } from "./CheckoutButton";
 import { useSpots } from "@/lib/useSpots";
+import { OFFER } from "@/lib/offer";
 
 export function StickyMobileCta() {
   const [visible, setVisible] = useState(false);
-  const { remaining, soldOut } = useSpots();
+  const { soldOut } = useSpots();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -34,11 +35,11 @@ export function StickyMobileCta() {
           <div className="flex items-center gap-1.5">
             <span className={`w-2 h-2 rounded-full ${soldOut ? "bg-rose-500" : "bg-[#00FF88] animate-pulse"}`} />
             <span className="text-[10px] font-mono text-slate-300 uppercase font-semibold">
-              {soldOut ? "Esgotado" : `${remaining} vagas`}
+              {soldOut ? "Esgotado" : `Turma de ${OFFER.spots} vagas`}
             </span>
           </div>
           <div className="flex items-baseline gap-1">
-            <span className="text-lg font-black text-white">R$ 20</span>
+            <span className="text-lg font-black text-white">{OFFER.priceLabel}</span>
             <span className="text-[10px] text-slate-400 font-mono">• único</span>
           </div>
         </div>

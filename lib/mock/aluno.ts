@@ -1,4 +1,4 @@
-// DADOS MOCKADOS — estrutura do Módulo 01 aprovada; conteúdo didático ainda NÃO escrito.
+// DADOS MOCKADOS — estrutura/progresso do Módulo 01. O roteiro das aulas fica em lib/aulas/modulo-01.ts.
 // Substituir por dados reais (Supabase) quando o backend existir.
 //
 // Campo interno `validacao` (não exibido ao aluno):
@@ -134,7 +134,7 @@ export function lessonHref(n: number) {
   return `/aluno/aulas/${n}`;
 }
 
-// MOCK — etapas da aula. Conteúdo definitivo será escrito após o Gate em Android físico.
+// MOCK — etapas da aula. Conteúdo: lib/aulas/modulo-01.ts (validado só em emulação; revisar após Android físico).
 export type StageId = "teoria" | "missao" | "validacao";
 export const lessonStages: { id: StageId; label: string }[] = [
   { id: "teoria", label: "Teoria" },

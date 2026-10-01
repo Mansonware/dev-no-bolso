@@ -42,7 +42,7 @@ const curriculumItems = [
     title: "Deploy",
     desc: "Como publicar o projeto na internet.",
     icon: CloudUpload,
-    tag: "Produção & Domínio",
+    tag: "GitHub Pages",
     accent: "#00D9FF",
   },
 ];

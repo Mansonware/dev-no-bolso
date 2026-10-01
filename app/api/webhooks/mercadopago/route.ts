@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getPaymentDetails, validatePayment } from "@/lib/mercadopago";
+import { recordApprovedPayment } from "@/lib/redis";
 
 export async function POST(req: NextRequest) {
   try {
@@ -24,8 +26,14 @@ export async function POST(req: NextRequest) {
       receivedAt: new Date().toISOString(),
     });
 
-    // Ponto de extensão para persistência futura quando for adicionado banco de dados
-    // ex: await savePaymentNotification({ eventType, paymentOrResourceId });
+    // Conta a vaga mesmo se o comprador não voltar para /pagamento/sucesso.
+    // Não confia no corpo da notificação: reconsulta o pagamento na API do Mercado Pago.
+    if (String(eventType).startsWith("payment") && paymentOrResourceId !== "unknown") {
+      const validation = validatePayment(await getPaymentDetails(String(paymentOrResourceId)));
+      if (validation.valid) {
+        await recordApprovedPayment(validation.paymentId);
+      }
+    }
 
     return NextResponse.json({ received: true }, { status: 200 });
   } catch (error: unknown) {
