@@ -38,7 +38,7 @@ export async function GET(
       );
     }
 
-    // Registra a vaga preenchida no Redis de forma idempotente
+    // Registra o pagamento aprovado no cache de contingência de forma idempotente
     const { recordApprovedPayment } = await import("@/lib/redis");
     await recordApprovedPayment(validation.paymentId);
 
