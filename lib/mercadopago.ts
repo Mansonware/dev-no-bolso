@@ -65,7 +65,7 @@ export async function createCheckoutPreference(siteUrl: string): Promise<Mercado
         quantity: PRODUCT_CONFIG.quantity,
         currency_id: PRODUCT_CONFIG.currencyId,
         unit_price: PRODUCT_CONFIG.unitPrice,
-        description: "Acesso à Turma Fundadora #01 do DEV NO BOLSO - 3 aulas, gravações, prompts e suporte.",
+        description: "Acesso web à Turma Fundadora #01 do DEV NO BOLSO - 4 aulas, materiais, prompts e suporte.",
       },
     ],
     back_urls: {
