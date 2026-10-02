@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { House, Route, FolderGit2, MessageCircle } from "lucide-react";
+import { House, Route, FolderGit2, MessageCircle, LogOut } from "lucide-react";
 import { Brand } from "./Brand";
 
 const nav = [
@@ -24,6 +24,25 @@ type Props = {
   children: React.ReactNode;
 };
 
+function LogoutButton({ compact = false }: { compact?: boolean }) {
+  return (
+    <form action="/api/access/logout" method="post">
+      <button
+        type="submit"
+        className={
+          compact
+            ? "w-8 h-8 rounded-full border border-white/10 flex items-center justify-center text-slate-500 hover:text-rose-300 hover:border-rose-500/30"
+            : "flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-500 transition-colors hover:bg-white/[0.03] hover:text-rose-300"
+        }
+        aria-label="Sair da área do aluno"
+      >
+        <LogOut className="w-[18px] h-[18px]" aria-hidden />
+        {!compact && "Sair"}
+      </button>
+    </form>
+  );
+}
+
 export function AppShell({ studentName, children }: Props) {
   const active = activeId(usePathname() ?? "/aluno");
   const initial = studentName.charAt(0).toUpperCase();
@@ -32,7 +51,6 @@ export function AppShell({ studentName, children }: Props) {
 
   return (
     <div className="min-h-screen bg-[#050807] text-[#F5F7F6]">
-      {/* Sidebar — desktop */}
       <aside className="hidden lg:flex fixed inset-y-0 left-0 w-60 flex-col border-r border-white/[0.06] bg-[#060A08] px-4 py-6">
         <Link href="/aluno" className="px-2" aria-label="Início">
           <Brand />
@@ -44,33 +62,35 @@ export function AppShell({ studentName, children }: Props) {
           ))}
         </nav>
 
-        <div className="mt-auto space-y-4">
+        <div className="mt-auto space-y-2">
           <SideLink item={support} isActive={active === "suporte"} />
+          <LogoutButton />
           <div className="flex items-center gap-3 rounded-xl border border-white/[0.06] px-3 py-3">
             <div className="w-8 h-8 rounded-full bg-[#0D1512] border border-white/10 flex items-center justify-center text-sm font-bold text-[#00FF88]">
               {initial}
             </div>
             <div className="min-w-0">
               <p className="text-sm font-semibold truncate">{studentName}</p>
-              <p className="text-[11px] font-mono text-slate-500">Plano Core</p>
+              <p className="text-[11px] font-mono text-slate-500">Acesso web</p>
             </div>
           </div>
         </div>
       </aside>
 
-      {/* Header — mobile */}
       <header className="lg:hidden sticky top-0 z-30 flex h-14 items-center justify-between border-b border-white/[0.06] bg-[#050807]/90 px-4 backdrop-blur-md">
         <Link href="/aluno" aria-label="Início">
           <Brand />
         </Link>
-        <div className="w-8 h-8 rounded-full bg-[#0D1512] border border-white/10 flex items-center justify-center text-sm font-bold text-[#00FF88]">
-          {initial}
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 rounded-full bg-[#0D1512] border border-white/10 flex items-center justify-center text-sm font-bold text-[#00FF88]">
+            {initial}
+          </div>
+          <LogoutButton compact />
         </div>
       </header>
 
       <main className="lg:pl-60 pb-24 lg:pb-0">{children}</main>
 
-      {/* Tab bar — mobile (área do polegar) */}
       <nav
         className="lg:hidden fixed bottom-0 inset-x-0 z-30 grid grid-cols-4 border-t border-white/[0.08] bg-[#060A08]/95 backdrop-blur-md pb-[env(safe-area-inset-bottom)]"
         aria-label="Navegação principal"
