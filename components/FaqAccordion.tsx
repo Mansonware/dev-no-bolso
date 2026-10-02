@@ -29,9 +29,9 @@ const faqs: FaqItem[] = [
     answer: "Sim. Os participantes terão acesso às gravações da turma.",
   },
   {
-    question: "Como recebo o grupo?",
+    question: "Como recebo o acesso?",
     answer:
-      "Depois que o pagamento for confirmado, você será direcionado ao WhatsApp da ADM para receber seu acesso.",
+      "Depois que o Mercado Pago confirma o pagamento, o próprio site libera sua área do aluno neste navegador. O WhatsApp fica apenas para suporte.",
   },
   {
     question: "O pagamento é seguro?",

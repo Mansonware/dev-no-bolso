@@ -7,11 +7,12 @@ import { OFFER } from "@/lib/offer";
 
 const includesList = [
   "Roteiro passo a passo: seu primeiro site no ar pelo GitHub Pages",
-  "3 aulas práticas online",
+  "4 aulas práticas na web",
+  "Acesso à área do aluno liberado após pagamento",
   "Acesso completo às gravações",
   "Materiais de apoio",
   "Prompt Pack exclusivo para código",
-  "Grupo fechado no WhatsApp",
+  "Suporte pelo WhatsApp quando precisar",
   "7 dias de suporte dedicado",
 ];
 

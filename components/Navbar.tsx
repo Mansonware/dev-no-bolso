@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Terminal, Sparkles } from "lucide-react";
+import { Terminal, Sparkles, LogIn } from "lucide-react";
 import { useSpots } from "@/lib/useSpots";
 import { OFFER } from "@/lib/offer";
 
@@ -30,6 +30,14 @@ export function Navbar() {
               {soldOut ? "ESGOTADO" : `${OFFER.spots} VAGAS`}
             </span>
           </div>
+
+          <Link
+            href="/aluno"
+            className="hidden md:inline-flex items-center gap-1.5 text-xs font-bold px-3.5 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-[#F5F7F6] border border-white/10 transition-colors"
+          >
+            <LogIn className="w-3.5 h-3.5 text-[#00D9FF]" />
+            Área do aluno
+          </Link>
 
           <a
             href="#oferta"
