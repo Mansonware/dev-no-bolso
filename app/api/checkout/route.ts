@@ -1,21 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createCheckoutPreference } from "@/lib/mercadopago";
-import { getSpotsStatus } from "@/lib/redis";
 
 export async function POST(req: NextRequest) {
   try {
-    // Verifica se ainda existem vagas disponíveis
-    const spots = await getSpotsStatus();
-    if (spots.soldOut) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: "As vagas da Turma Fundadora #01 estão esgotadas no momento!",
-        },
-        { status: 400 }
-      );
-    }
-    // Determina a URL base do site
     const envSiteUrl = process.env.NEXT_PUBLIC_SITE_URL;
     let siteUrl = envSiteUrl?.trim() || "";
 
@@ -31,7 +18,6 @@ export async function POST(req: NextRequest) {
       siteUrl = "http://localhost:3000";
     }
 
-    // Garante que o preço ou parâmetros arbitrários não venham do cliente
     const preference = await createCheckoutPreference(siteUrl);
 
     return NextResponse.json({
