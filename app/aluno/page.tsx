@@ -59,7 +59,7 @@ export default function AlunoDashboardPage() {
       <section className="mt-8 flex flex-col gap-3 rounded-2xl border border-dashed border-white/10 px-5 py-5 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <p className="text-[15px] font-semibold">Travou em alguma missão?</p>
-          <p className="mt-0.5 text-sm text-slate-400">Manda print no suporte. A gente responde pelo WhatsApp.</p>
+          <p className="mt-0.5 text-sm text-slate-400">Manda um print no suporte. O WhatsApp fica só para ajuda.</p>
         </div>
         <Link
           href="/aluno/suporte"
