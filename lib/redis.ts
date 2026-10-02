@@ -1,12 +1,11 @@
 import { Redis } from "@upstash/redis";
 import { OFFER } from "./offer";
+import { getApprovedOfferPaymentCount } from "./mercadopago";
 
 export const TOTAL_SPOTS = OFFER.spots;
-// Vendas da oferta de R$97 confirmadas fora do Mercado Pago (ex.: Pix direto). Ajustar à mão.
 export const MANUAL_APPROVED_SPOTS = 0;
 
 export const REDIS_KEYS = {
-  // Chave nova para a oferta de R$97: vendas anteriores (R$20, chave turma_01) não ocupam estas 10 vagas.
   APPROVED_PAYMENTS: "dev_no_bolso:fundadora_97:approved_payments",
 } as const;
 
@@ -17,75 +16,51 @@ export interface SpotsStatus {
   soldOut: boolean;
 }
 
-/**
- * Retorna uma instância do Upstash Redis se as credenciais estiverem disponíveis.
- * Suporta as variáveis padrão do Upstash (UPSTASH_REDIS_REST_URL) ou Vercel KV (KV_REST_API_URL).
- */
 export function getRedisClient(): Redis | null {
   const url = process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL;
   const token = process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN;
 
-  if (!url || !token) {
-    return null;
-  }
+  if (!url || !token) return null;
 
   try {
-    return new Redis({
-      url: url.trim(),
-      token: token.trim(),
-    });
+    return new Redis({ url: url.trim(), token: token.trim() });
   } catch (error) {
     console.error("[Redis Error] Falha ao inicializar cliente Redis:", error);
     return null;
   }
 }
 
-/**
- * Consulta a contagem de vagas em tempo real no Upstash Redis.
- * Soma vendas online aprovadas + vendas confirmadas manualmente (ex.: dinheiro físico).
- */
-export async function getSpotsStatus(): Promise<SpotsStatus> {
-  const redis = getRedisClient();
-
-  if (!redis) {
-    const approved = MANUAL_APPROVED_SPOTS;
-    const remaining = Math.max(0, TOTAL_SPOTS - approved);
-    return {
-      total: TOTAL_SPOTS,
-      approved,
-      remaining,
-      soldOut: remaining <= 0,
-    };
-  }
-
-  try {
-    const onlineApprovedCount = await redis.scard(REDIS_KEYS.APPROVED_PAYMENTS);
-    const approvedCount = onlineApprovedCount + MANUAL_APPROVED_SPOTS;
-    const remaining = Math.max(0, TOTAL_SPOTS - approvedCount);
-    return {
-      total: TOTAL_SPOTS,
-      approved: approvedCount,
-      remaining,
-      soldOut: remaining <= 0,
-    };
-  } catch (error) {
-    console.error("[Redis Error] Falha ao consultar vagas:", error);
-    const approved = MANUAL_APPROVED_SPOTS;
-    const remaining = Math.max(0, TOTAL_SPOTS - approved);
-    return {
-      total: TOTAL_SPOTS,
-      approved,
-      remaining,
-      soldOut: remaining <= 0,
-    };
-  }
+function buildSpotsStatus(approved: number): SpotsStatus {
+  const remaining = Math.max(0, TOTAL_SPOTS - approved);
+  return {
+    total: TOTAL_SPOTS,
+    approved,
+    remaining,
+    soldOut: remaining <= 0,
+  };
 }
 
-/**
- * Registra um pagamento aprovado de forma estritamente idempotente.
- * Se o mesmo paymentId for consultado várias vezes (ex: refresh da página de sucesso),
- * o Redis Set garante que a contagem NÃO será debitada novamente.
- */
+export async function getSpotsStatus(): Promise<SpotsStatus> {
+  try {
+    const mercadoPagoApproved = await getApprovedOfferPaymentCount();
+    return buildSpotsStatus(mercadoPagoApproved + MANUAL_APPROVED_SPOTS);
+  } catch (error) {
+    console.error("[Spots] Falha ao consultar Mercado Pago; tentando cache Redis:", error);
+  }
+
+  const redis = getRedisClient();
+  if (redis) {
+    try {
+      const onlineApprovedCount = await redis.scard(REDIS_KEYS.APPROVED_PAYMENTS);
+      return buildSpotsStatus(onlineApprovedCount + MANUAL_APPROVED_SPOTS);
+    } catch (error) {
+      console.error("[Redis Error] Falha ao consultar vagas:", error);
+    }
+  }
+
+  return buildSpotsStatus(MANUAL_APPROVED_SPOTS);
+}
+
 export async function recordApprovedPayment(paymentId: string | number): Promise<boolean> {
   const redis = getRedisClient();
   if (!redis) return false;
@@ -94,10 +69,9 @@ export async function recordApprovedPayment(paymentId: string | number): Promise
   if (!cleanId) return false;
 
   try {
-    // sadd retorna 1 se foi um novo elemento inserido, ou 0 se já existia
     const added = await redis.sadd(REDIS_KEYS.APPROVED_PAYMENTS, cleanId);
     if (added === 1) {
-      console.log(`[Spots] Pagamento ${cleanId} registrado! Vaga debitada com sucesso.`);
+      console.log(`[Spots] Pagamento ${cleanId} registrado no cache de contingência.`);
     }
     return added === 1;
   } catch (error) {
