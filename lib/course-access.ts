@@ -1,5 +1,15 @@
-import { createCipheriv, createDecipheriv, createHmac, randomBytes } from "node:crypto";
-import { getMercadoPagoAccessToken } from "@/lib/mercadopago";
+import {
+  createCipheriv,
+  createDecipheriv,
+  createHmac,
+  randomBytes,
+  timingSafeEqual,
+} from "node:crypto";
+import {
+  getMercadoPagoAccessToken,
+  getPaymentDetails,
+  validatePayment,
+} from "@/lib/mercadopago";
 
 export const COURSE_ACCESS_COOKIE = "dnb_course_access";
 export const COURSE_ACCESS_MAX_AGE = 60 * 60 * 24 * 180;
@@ -12,9 +22,16 @@ type CourseAccessPayload = {
 };
 
 function getCourseAccessKey() {
-  return createHmac("sha256", getMercadoPagoAccessToken())
+  const secret =
+    process.env.COURSE_ACCESS_SECRET?.trim() || getMercadoPagoAccessToken();
+
+  return createHmac("sha256", secret)
     .update("dev-no-bolso/course-access/v1")
     .digest();
+}
+
+function normalizeEmail(email: string) {
+  return email.trim().toLowerCase();
 }
 
 export function createCourseAccessToken(paymentId: string) {
@@ -42,7 +59,9 @@ export function createCourseAccessToken(paymentId: string) {
   ].join(".");
 }
 
-export function verifyCourseAccessToken(token: string | null | undefined): CourseAccessPayload | null {
+export function verifyCourseAccessToken(
+  token: string | null | undefined
+): CourseAccessPayload | null {
   if (!token) return null;
 
   try {
@@ -78,4 +97,56 @@ export function verifyCourseAccessToken(token: string | null | undefined): Cours
   } catch {
     return null;
   }
+}
+
+export async function verifyLiveCourseAccessToken(
+  token: string | null | undefined
+): Promise<CourseAccessPayload | null> {
+  const payload = verifyCourseAccessToken(token);
+  if (!payload) return null;
+
+  try {
+    const validation = validatePayment(await getPaymentDetails(payload.paymentId));
+    return validation.valid ? payload : null;
+  } catch (error) {
+    console.warn(
+      "[Course Access] Mercado Pago indisponível; mantendo sessão local já assinada.",
+      error
+    );
+    return payload;
+  }
+}
+
+export function createCourseRecoveryCode(paymentId: string, payerEmail: string) {
+  const normalizedEmail = normalizeEmail(payerEmail);
+  if (!/^\d+$/.test(paymentId) || !normalizedEmail) {
+    throw new Error("Dados inválidos para gerar código de acesso.");
+  }
+
+  const mac = createHmac("sha256", getCourseAccessKey())
+    .update(`recovery:v1:${paymentId}:${normalizedEmail}`)
+    .digest("hex")
+    .slice(0, 20)
+    .toUpperCase();
+
+  return `DNB-${paymentId}-${mac}`;
+}
+
+export function extractPaymentIdFromRecoveryCode(code: string) {
+  const match = code.trim().toUpperCase().match(/^DNB-(\d+)-([A-F0-9]{20})$/);
+  return match?.[1] ?? null;
+}
+
+export function verifyCourseRecoveryCode(
+  code: string,
+  paymentId: string,
+  payerEmail: string
+) {
+  const provided = code.trim().toUpperCase();
+  const expected = createCourseRecoveryCode(paymentId, payerEmail).toUpperCase();
+
+  const a = Buffer.from(provided);
+  const b = Buffer.from(expected);
+
+  return a.length === b.length && timingSafeEqual(a, b);
 }

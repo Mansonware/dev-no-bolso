@@ -24,7 +24,20 @@ export interface MercadoPagoPaymentResponse {
   currency_id: string;
   external_reference?: string;
   date_approved?: string;
+  payer?: {
+    email?: string;
+    [key: string]: unknown;
+  };
   [key: string]: unknown;
+}
+
+interface MercadoPagoPaymentSearchResponse {
+  paging?: {
+    total?: number;
+    limit?: number;
+    offset?: number;
+  };
+  results?: MercadoPagoPaymentResponse[];
 }
 
 export const PRODUCT_CONFIG = {
@@ -36,9 +49,6 @@ export const PRODUCT_CONFIG = {
   externalReference: "DEV_NO_BOLSO_TURMA_01",
 } as const;
 
-/**
- * Retorna o Access Token do Mercado Pago configurado server-side
- */
 export function getMercadoPagoAccessToken(): string {
   const token = process.env.MERCADOPAGO_ACCESS_TOKEN;
   if (!token) {
@@ -49,12 +59,8 @@ export function getMercadoPagoAccessToken(): string {
   return token.trim();
 }
 
-/**
- * Cria a preferência de checkout no Mercado Pago Checkout Pro
- */
 export async function createCheckoutPreference(siteUrl: string): Promise<MercadoPagoPreferenceResponse> {
   const token = getMercadoPagoAccessToken();
-
   const cleanSiteUrl = siteUrl.replace(/\/+$/, "");
 
   const preferencePayload: Record<string, unknown> = {
@@ -78,7 +84,6 @@ export async function createCheckoutPreference(siteUrl: string): Promise<Mercado
     statement_descriptor: "DEV NO BOLSO",
   };
 
-  // Webhook só pode ser configurado em HTTPS público (não em localhost)
   if (cleanSiteUrl.startsWith("https://") && !cleanSiteUrl.includes("localhost")) {
     preferencePayload.notification_url = `${cleanSiteUrl}/api/webhooks/mercadopago`;
   }
@@ -99,17 +104,13 @@ export async function createCheckoutPreference(siteUrl: string): Promise<Mercado
     throw new Error(`Falha ao criar preferência no Mercado Pago: HTTP ${response.status}`);
   }
 
-  const data: MercadoPagoPreferenceResponse = await response.json();
-  return data;
+  return response.json();
 }
 
-/**
- * Consulta um pagamento diretamente na API do Mercado Pago
- */
 export async function getPaymentDetails(paymentId: string): Promise<MercadoPagoPaymentResponse> {
   const token = getMercadoPagoAccessToken();
-
   const cleanPaymentId = encodeURIComponent(paymentId.trim());
+
   const response = await fetch(`https://api.mercadopago.com/v1/payments/${cleanPaymentId}`, {
     method: "GET",
     headers: {
@@ -125,13 +126,55 @@ export async function getPaymentDetails(paymentId: string): Promise<MercadoPagoP
     throw new Error(`Pagamento ${cleanPaymentId} não encontrado ou inválido.`);
   }
 
-  const data: MercadoPagoPaymentResponse = await response.json();
-  return data;
+  return response.json();
 }
 
-/**
- * Validação rigorosa dos dados do pagamento contra as regras de negócio
- */
+export async function getApprovedOfferPayments(): Promise<MercadoPagoPaymentResponse[]> {
+  const token = getMercadoPagoAccessToken();
+  const params = new URLSearchParams({
+    sort: "date_created",
+    criteria: "desc",
+    external_reference: PRODUCT_CONFIG.externalReference,
+    status: "approved",
+    limit: "50",
+    offset: "0",
+  });
+
+  const response = await fetch(
+    `https://api.mercadopago.com/v1/payments/search?${params.toString()}`,
+    {
+      method: "GET",
+      headers: {
+        "Authorization": `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      cache: "no-store",
+    }
+  );
+
+  if (!response.ok) {
+    const errorBody = await response.text();
+    console.error("[MercadoPago API Error] Payment search failed:", response.status, errorBody);
+    throw new Error(`Falha ao consultar pagamentos aprovados: HTTP ${response.status}`);
+  }
+
+  const data: MercadoPagoPaymentSearchResponse = await response.json();
+  const unique = new Map<string, MercadoPagoPaymentResponse>();
+
+  for (const payment of data.results ?? []) {
+    const validation = validatePayment(payment);
+    if (validation.valid) {
+      unique.set(String(payment.id), payment);
+    }
+  }
+
+  return [...unique.values()];
+}
+
+export async function getApprovedOfferPaymentCount(): Promise<number> {
+  return (await getApprovedOfferPayments()).length;
+}
+
 export interface PaymentValidationResult {
   valid: boolean;
   paymentId: string;

@@ -31,7 +31,7 @@ const faqs: FaqItem[] = [
   {
     question: "Como recebo o acesso?",
     answer:
-      "Depois que o Mercado Pago confirma o pagamento, o próprio site libera sua área do aluno neste navegador. O WhatsApp fica apenas para suporte.",
+      "Depois que o Mercado Pago confirma o pagamento, o próprio site libera sua área do aluno e mostra um código de acesso. Guarde esse código para entrar em outro celular ou navegador. O WhatsApp fica apenas para suporte.",
   },
   {
     question: "O pagamento é seguro?",
