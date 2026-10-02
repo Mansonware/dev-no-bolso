@@ -9,15 +9,13 @@ interface CheckoutButtonProps {
   className?: string;
   size?: "default" | "large" | "compact";
   id?: string;
-  soldOut?: boolean;
 }
 
 export function CheckoutButton({
-  label = `GARANTIR MINHA VAGA — ${OFFER.priceLabel}`,
+  label = `COMEÇAR AGORA — ${OFFER.priceLabel}`,
   className = "",
   size = "large",
   id = "cta-checkout-button",
-  soldOut = false,
 }: CheckoutButtonProps) {
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -42,7 +40,6 @@ export function CheckoutButton({
         );
       }
 
-      // Redireciona o usuário de forma limpa para o Checkout Pro do Mercado Pago
       window.location.href = data.init_point;
     } catch (err: unknown) {
       const error = err as Error;
@@ -58,21 +55,6 @@ export function CheckoutButton({
     large: "py-4 sm:py-5 px-6 sm:px-8 text-base sm:text-lg font-black tracking-tight",
   }[size];
 
-  if (soldOut) {
-    return (
-      <div className="w-full">
-        <button
-          id={id}
-          disabled
-          className={`w-full inline-flex items-center justify-center gap-2 bg-white/5 border border-rose-500/30 text-rose-400 font-bold rounded-xl cursor-not-allowed opacity-80 ${sizeClasses} ${className}`}
-        >
-          <Lock className="w-4 h-4" />
-          <span>TURMA ESGOTADA ({OFFER.spots}/{OFFER.spots} VAGAS)</span>
-        </button>
-      </div>
-    );
-  }
-
   return (
     <div className="w-full">
       <button
@@ -81,7 +63,6 @@ export function CheckoutButton({
         disabled={loading}
         className={`group relative w-full inline-flex items-center justify-center gap-3 bg-[#00FF88] hover:bg-[#00e57a] text-[#050807] rounded-xl transition-all duration-200 shadow-[0_0_30px_rgba(0,255,136,0.3)] hover:shadow-[0_0_45px_rgba(0,255,136,0.45)] hover:scale-[1.01] active:scale-[0.99] disabled:opacity-75 disabled:cursor-not-allowed cursor-pointer ${sizeClasses} ${className}`}
       >
-        {/* Efeito de brilho interno sutil */}
         <span className="absolute inset-0 rounded-xl bg-gradient-to-t from-black/10 to-white/20 pointer-events-none" />
 
         {loading ? (
