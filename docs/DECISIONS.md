@@ -18,3 +18,11 @@
 - **Data:** 2026-10-01
 - **Decisão:** preço R$97 (fonte única `lib/offer.ts`, usado na landing e no checkout) e 10 vagas comunicadas com copy estática — sem contador "restam X" na landing.
 - **Trava de segurança:** com Upstash Redis configurado, o checkout fecha após 10 pagamentos aprovados de R$97 (chave nova `dev_no_bolso:fundadora_97:approved_payments`; vendas antigas de R$20 não contam). O webhook do Mercado Pago também registra a vaga, reconsultando o pagamento na API. Sem Redis, não há trava automática: o dono controla as vendas manualmente.
+
+
+## D-003 · Oferta contínua: R$45,99 pagamento único
+
+- **Data:** 2026-10-02
+- **Status:** Atual — substitui a D-002 para preço e disponibilidade.
+- **Decisão:** acesso ilimitado ao DEV NO BOLSO por **R$45,99 em pagamento único**. Sem contagem de vagas, sem esgotamento e sem copy de escassez.
+- **Implementação:** `lib/offer.ts` é a fonte única do preço usado na landing, checkout e validação server-side do Mercado Pago.
