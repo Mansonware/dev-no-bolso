@@ -30,7 +30,7 @@ export default function HomePage() {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center">
             {/* Coluna de Texto & CTA */}
             <div className="lg:col-span-7 text-center lg:text-left space-y-6">
-              {/* Badge Dinâmico de Vagas */}
+              {/* Badge de acesso imediato */}
               <HeroSpotsBadge />
 
               {/* Título do Produto */}
@@ -55,7 +55,7 @@ export default function HomePage() {
               <div className="pt-2 max-w-md mx-auto lg:mx-0 space-y-3">
                 <CheckoutButton
                   id="hero-cta-button"
-                  label={`GARANTIR MINHA VAGA — ${OFFER.priceLabel}`}
+                  label={`COMEÇAR AGORA — ${OFFER.priceLabel}`}
                   size="large"
                 />
 
