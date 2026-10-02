@@ -4,5 +4,4 @@ export const OFFER = {
   price: 97,
   priceLabel: "R$97",
   priceFormatted: "R$ 97,00",
-  spots: 10,
 } as const;
