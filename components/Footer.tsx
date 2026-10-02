@@ -13,7 +13,7 @@ export function Footer() {
           </div>
           <div>
             <p className="font-mono font-bold text-sm text-slate-200">
-              DEV NO BOLSO • Turma Fundadora #01
+              DEV NO BOLSO • Acesso completo
             </p>
             <p className="text-[11px] text-slate-500">
               Workflow prático de desenvolvimento com IA, celular e deploy real.

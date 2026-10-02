@@ -2,21 +2,14 @@
 
 import { useEffect, useState } from "react";
 import { CheckoutButton } from "./CheckoutButton";
-import { useSpots } from "@/lib/useSpots";
 import { OFFER } from "@/lib/offer";
 
 export function StickyMobileCta() {
   const [visible, setVisible] = useState(false);
-  const { soldOut } = useSpots();
 
   useEffect(() => {
     const handleScroll = () => {
-      // Exibe o sticky CTA após 450px de scroll (quando o usuário passou pelo hero)
-      if (window.scrollY > 450) {
-        setVisible(true);
-      } else {
-        setVisible(false);
-      }
+      setVisible(window.scrollY > 450);
     };
 
     window.addEventListener("scroll", handleScroll, { passive: true });
@@ -27,15 +20,15 @@ export function StickyMobileCta() {
 
   return (
     <aside
-      aria-label="Acesso rápido à inscrição"
+      aria-label="Acesso rápido ao curso"
       className="fixed bottom-0 left-0 right-0 z-50 lg:hidden p-3 bg-[#050807]/92 backdrop-blur-xl border-t border-white/10 shadow-[0_-10px_30px_rgba(0,0,0,0.8)] transition-all duration-300 transform translate-y-0"
     >
       <div className="max-w-md mx-auto flex items-center justify-between gap-3">
         <div className="flex flex-col pl-1">
           <div className="flex items-center gap-1.5">
-            <span className={`w-2 h-2 rounded-full ${soldOut ? "bg-rose-500" : "bg-[#00FF88] animate-pulse"}`} />
+            <span className="w-2 h-2 rounded-full bg-[#00FF88] animate-pulse" />
             <span className="text-[10px] font-mono text-slate-300 uppercase font-semibold">
-              {soldOut ? "Esgotado" : `Turma de ${OFFER.spots} vagas`}
+              Acesso imediato
             </span>
           </div>
           <div className="flex items-baseline gap-1">
@@ -47,9 +40,8 @@ export function StickyMobileCta() {
         <div className="flex-1 max-w-[210px]">
           <CheckoutButton
             id="mobile-sticky-cta"
-            label="GARANTIR VAGA"
+            label="COMEÇAR AGORA"
             size="compact"
-            soldOut={soldOut}
           />
         </div>
       </div>

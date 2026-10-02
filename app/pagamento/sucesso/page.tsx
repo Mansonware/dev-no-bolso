@@ -166,7 +166,7 @@ function SuccessContent() {
               <div className="flex justify-between items-center py-1 border-b border-white/5 text-xs sm:text-sm">
                 <span className="text-slate-400">Produto:</span>
                 <span className="font-semibold text-slate-200">
-                  DEV NO BOLSO — Turma #01
+                  DEV NO BOLSO
                 </span>
               </div>
               <div className="flex justify-between items-center pt-2 text-xs sm:text-sm">
