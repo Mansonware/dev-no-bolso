@@ -78,7 +78,7 @@ function PendenteContent() {
         )}
 
         <div className="p-4 bg-[#0D1512] rounded-xl border border-white/5 text-xs text-slate-400 mb-6 text-left">
-          ⚠️ <strong>Importante:</strong> O acesso ao grupo e materiais da Turma Fundadora só é liberado após a confirmação final do pagamento pelo processador.
+          ⚠️ <strong>Importante:</strong> O acesso às aulas e materiais é liberado automaticamente na web após a confirmação final do pagamento pelo processador.
         </div>
 
         <div className="space-y-3">
