@@ -1,27 +1,17 @@
 import { NextResponse } from "next/server";
-import { getSpotsStatus, TOTAL_SPOTS } from "@/lib/redis";
 
 export const dynamic = "force-dynamic";
 
 export async function GET() {
-  try {
-    const status = await getSpotsStatus();
-
-    return NextResponse.json(status, {
+  return NextResponse.json(
+    {
+      unlimited: true,
+      soldOut: false,
+    },
+    {
       headers: {
         "Cache-Control": "no-store, max-age=0",
       },
-    });
-  } catch (error: unknown) {
-    console.error("[API /api/spots] Erro:", error);
-    return NextResponse.json(
-      {
-        total: TOTAL_SPOTS,
-        approved: 0,
-        remaining: TOTAL_SPOTS,
-        soldOut: false,
-      },
-      { status: 200 }
-    );
-  }
+    }
+  );
 }
