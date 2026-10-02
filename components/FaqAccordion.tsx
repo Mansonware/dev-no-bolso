@@ -12,7 +12,7 @@ const faqs: FaqItem[] = [
   {
     question: "Preciso saber programar?",
     answer:
-      "Não. A primeira turma foi pensada para permitir que iniciantes entendam o processo e acompanhem a prática.",
+      "Não. O conteúdo foi pensado para permitir que iniciantes entendam o processo e acompanhem a prática.",
   },
   {
     question: "Preciso de computador?",
@@ -22,11 +22,11 @@ const faqs: FaqItem[] = [
   {
     question: "Consigo publicar meu site só pelo celular?",
     answer:
-      "Esse é o foco. O roteiro de publicação usa só o navegador (Chrome) e uma conta gratuita no GitHub, e foi testado em ambiente móvel emulado (navegador simulando um celular Android). Se algo na sua tela estiver diferente, o suporte da turma te ajuda pelo WhatsApp.",
+      "Esse é o foco. O roteiro de publicação usa só o navegador (Chrome) e uma conta gratuita no GitHub, e foi testado em ambiente móvel emulado (navegador simulando um celular Android). Se algo na sua tela estiver diferente, o suporte te ajuda pelo WhatsApp.",
   },
   {
     question: "As aulas ficam gravadas?",
-    answer: "Sim. Os participantes terão acesso às gravações da turma.",
+    answer: "Sim. As gravações ficam disponíveis na sua área do aluno.",
   },
   {
     question: "Como recebo o acesso?",
@@ -58,7 +58,7 @@ export function FaqAccordion() {
             Perguntas Frequentes
           </h2>
           <p className="mt-2 text-sm text-slate-400">
-            Respostas diretas sobre como funciona a Turma Fundadora.
+            Respostas diretas sobre como funciona o DEV NO BOLSO.
           </p>
         </div>
 
