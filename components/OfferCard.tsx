@@ -71,9 +71,8 @@ export function OfferCard() {
               Pagamento único:
             </span>
             <div className="flex items-baseline gap-2 mt-1">
-              <span className="text-2xl font-bold text-slate-400">R$</span>
               <span className="text-5xl sm:text-6xl font-black text-white tracking-tight">
-                {OFFER.price}
+                {OFFER.priceFormatted}
               </span>
             </div>
             <p className="text-xs text-[#00FF88] font-semibold mt-1">
