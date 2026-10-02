@@ -73,11 +73,11 @@ export default function HomePage() {
                 </span>
                 <span className="inline-flex items-center gap-1.5">
                   <Zap className="w-3.5 h-3.5 text-[#00FF88]" />
-                  3 aulas práticas online
+                  4 aulas práticas na web
                 </span>
                 <span className="inline-flex items-center gap-1.5">
                   <Sparkles className="w-3.5 h-3.5 text-[#00FF88]" />
-                  Grupo fechado WhatsApp
+                  Suporte pelo WhatsApp
                 </span>
               </div>
             </div>
