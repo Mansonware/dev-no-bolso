@@ -22,10 +22,12 @@ Crie `.env.local` a partir do `.env.example`:
 
 ```env
 MERCADOPAGO_ACCESS_TOKEN=APP_USR-...      # sem ele, /api/checkout responde 503 e o botão mostra aviso
+MERCADOPAGO_WEBHOOK_SECRET=               # opcional e recomendado: valida assinatura do webhook
 NEXT_PUBLIC_ADMIN_WHATSAPP=5512991070038  # WhatsApp só para suporte
 NEXT_PUBLIC_SITE_URL=https://dev-no-bolso.vercel.app
 UPSTASH_REDIS_REST_URL=                   # obrigatório para login/cadastro (sem ele, auth responde 503)
 UPSTASH_REDIS_REST_TOKEN=
+# Alternativa da integração Vercel: KV_REST_API_URL + KV_REST_API_TOKEN
 ```
 
 > Nunca versione `.env.local` ou credenciais.
@@ -43,6 +45,7 @@ npm run dev
 2. `POST /api/checkout` cria a preferência no Mercado Pago e o navegador é redirecionado ao Checkout Pro.
 3. A página de sucesso não confia em query params: consulta `GET /api/payment/[paymentId]`, que valida status, valor (em centavos), moeda e referência direto na API do Mercado Pago.
 4. Após a confirmação, o botão "Criar minha conta" leva a `/cadastro?payment_id=<id>`. O WhatsApp aparece só como suporte.
+5. O webhook reconsulta o pagamento antes de registrar a venda e valida a assinatura quando `MERCADOPAGO_WEBHOOK_SECRET` estiver configurado.
 
 ## Contas e sessões
 
@@ -65,10 +68,13 @@ First-party, mínimo e sem PII (sem IP, user agent, cookie ou e-mail). O navegad
 | Evento | Quando |
 |---|---|
 | `landing_view` | Landing exibida (1x por sessão) |
-| `free_mission_start` | Clique em "Começar a missão" (1x por sessão) |
-| `free_mission_complete` | Missão concluída (1x por sessão) |
-| `checkout_click` | Clique em qualquer botão de compra; também conta por posição: `checkout_click:hero`, `:offer`, `:final`, `:mission` |
-| `purchase_approved` | Pagamento validado no servidor (1x por pagamento) |
+| `experimentar_start` | Início da missão grátis (1x por sessão) |
+| `experimentar_complete` | Missão grátis concluída (1x por sessão) |
+| `checkout_click` | Clique em botão de compra; também conta por posição |
+| `checkout_created` | Preferência de checkout criada antes do redirecionamento |
+| `payment_success` | Pagamento aprovado validado no servidor (1x por pagamento) |
+| `signup_complete` | Cadastro pago concluído |
+| `first_lesson_start` | Primeira aula paga aberta no navegador |
 
 Chaves no Upstash: `dev_no_bolso:funnel:total` e `dev_no_bolso:funnel:day:YYYY-MM-DD` (hashes `campo → contagem`). Sem Redis configurado, os eventos são ignorados em silêncio.
 
