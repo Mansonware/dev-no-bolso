@@ -12,7 +12,8 @@ import {
   isWellFormedSessionToken,
   safeNextPath,
 } from "@/lib/authCore";
-import { deleteSession, getStoredSession, getStoredUser, getRedisClient, saveSession } from "@/lib/redis";
+import { hasAccess, type Entitlement } from "@/lib/entitlementCore";
+import { deleteSession, getEntitlement, getStoredSession, getStoredUser, getRedisClient, saveSession } from "@/lib/redis";
 
 export {
   REQUEST_PATH_HEADER,
@@ -26,11 +27,22 @@ export {
   verifyPassword,
 } from "@/lib/authCore";
 
-/** O que as telas recebem do usuário logado — nunca hash, salt ou token. */
+/**
+ * O que as telas recebem do usuário logado — nunca senha, salt ou token.
+ * `id` é o SHA-256 do e-mail: chave do progresso no Redis. Usar só no servidor.
+ */
 export type CurrentUser = {
+  id: string;
   name: string;
   firstName: string;
+  /** Pagamento que criou a conta. */
+  paymentId: string;
+  /** Acesso ao conteúdo pago (false = pagamento devolvido/contestado). */
+  hasAccess: boolean;
+  entitlement: Entitlement | null;
 };
+
+export const SUSPENDED_PATH = "/acesso-suspenso";
 
 export function isAuthConfigured(): boolean {
   return getRedisClient() !== null;
@@ -97,7 +109,15 @@ export const getCurrentUser = cache(async (): Promise<CurrentUser | null> => {
     const user = await getStoredUser(session.emailHash);
     if (!user) return null;
 
-    return { name: user.name, firstName: firstNameOf(user.name) };
+    const entitlement = await getEntitlement(user.paymentId);
+    return {
+      id: session.emailHash,
+      name: user.name,
+      firstName: firstNameOf(user.name),
+      paymentId: user.paymentId,
+      hasAccess: hasAccess(entitlement),
+      entitlement,
+    };
   } catch (error) {
     console.error("[Auth] Falha ao validar sessão:", error instanceof Error ? error.message : error);
     return null;
@@ -110,5 +130,16 @@ export async function requireUser(currentPath: string = DEFAULT_AFTER_LOGIN): Pr
   if (!user) {
     redirect(`/login?next=${encodeURIComponent(safeNextPath(currentPath))}`);
   }
+  return user;
+}
+
+/**
+ * Exige sessão válida E acesso ativo ao conteúdo pago.
+ * Sem sessão → /login; com o pagamento devolvido ou contestado → /acesso-suspenso
+ * (a conta e o progresso continuam guardados).
+ */
+export async function requireStudent(currentPath: string = DEFAULT_AFTER_LOGIN): Promise<CurrentUser> {
+  const user = await requireUser(currentPath);
+  if (!user.hasAccess) redirect(SUSPENDED_PATH);
   return user;
 }

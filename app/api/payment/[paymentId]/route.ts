@@ -1,68 +1,49 @@
-import { NextRequest, NextResponse } from "next/server";
-import { getPaymentDetails, validatePayment } from "@/lib/mercadopago";
-import { recordApprovedPayment } from "@/lib/redis";
+import { NextResponse, type NextRequest } from "next/server";
 import { recordFunnelEvent } from "@/lib/analytics";
+import { clientIpFrom, guardedPaymentLookup } from "@/lib/paymentAccess";
+import { maskEmail, type ClientPaymentState } from "@/lib/paymentCore";
+import { isPaymentClaimed, recordApprovedPayment } from "@/lib/redis";
 
-export async function GET(
-  _request: NextRequest,
-  context: { params: Promise<{ paymentId: string }> }
-) {
-  try {
-    const { paymentId } = await context.params;
+// Estado de um pagamento para as páginas de retorno do Mercado Pago.
+// A confirmação vem SEMPRE da API do Mercado Pago — nunca dos query params — e passa pelo
+// mesmo limite de consultas do /cadastro (lib/paymentAccess.ts).
+//
+// Resposta: { state, paymentId, accountCreated?, payerEmailHint? }
 
-    if (!paymentId || paymentId.trim() === "" || paymentId === "undefined" || paymentId === "null") {
-      return NextResponse.json(
-        {
-          valid: false,
-          error: "ID de pagamento inválido ou ausente.",
-        },
-        { status: 400 }
-      );
-    }
+type Body = { state: ClientPaymentState; paymentId?: string; accountCreated?: boolean; payerEmailHint?: string | null };
 
-    const cleanPaymentId = paymentId.trim();
+function respond(body: Body, status = 200) {
+  return NextResponse.json(body, { status, headers: { "Cache-Control": "no-store" } });
+}
 
-    // Consulta na API do Mercado Pago
-    const payment = await getPaymentDetails(cleanPaymentId);
+export async function GET(req: NextRequest, context: { params: Promise<{ paymentId: string }> }) {
+  const { paymentId: raw } = await context.params;
+  const lookup = await guardedPaymentLookup(raw?.trim() ?? "", clientIpFrom(req.headers));
 
-    // Validação rígida das regras de negócio
-    const validation = validatePayment(payment);
-
-    if (!validation.valid) {
-      return NextResponse.json(
-        {
-          valid: false,
-          status: validation.status,
-          paymentId: validation.paymentId,
-          reason: validation.reason,
-        },
-        { status: 200 }
-      );
-    }
-
-    // Registra a venda de forma idempotente; o evento do funil só conta na primeira validação.
-    const isNewPurchase = await recordApprovedPayment(validation.paymentId);
-    if (isNewPurchase) {
-      await recordFunnelEvent("payment_success");
-    }
-
-    return NextResponse.json({
-      valid: true,
-      status: "approved",
-      paymentId: validation.paymentId,
-      amount: validation.transactionAmount,
-      currency: validation.currencyId,
-    });
-  } catch (error: unknown) {
-    const err = error as Error;
-    console.error("[API /api/payment/[paymentId]] Erro ao consultar pagamento:", err?.message || err);
-
-    return NextResponse.json(
-      {
-        valid: false,
-        error: "Não foi possível validar o pagamento junto ao processador.",
-      },
-      { status: 404 }
-    );
+  if (lookup.state === "rate_limited") return respond({ state: "rate_limited", paymentId: lookup.paymentId }, 429);
+  if (lookup.state !== "approved") {
+    const status = lookup.state === "unavailable" ? 503 : lookup.state === "not_found" && !/^\d+$/.test(raw ?? "") ? 400 : 200;
+    return respond({ state: lookup.state, paymentId: lookup.paymentId }, status);
   }
+
+  // Registra a venda de forma idempotente; o evento do funil só conta na primeira validação.
+  try {
+    if (await recordApprovedPayment(lookup.paymentId)) await recordFunnelEvent("payment_success");
+  } catch {
+    // Registro de venda é contabilidade: não pode impedir o comprador de seguir.
+  }
+
+  let accountCreated = false;
+  try {
+    accountCreated = await isPaymentClaimed(lookup.paymentId);
+  } catch {
+    accountCreated = false;
+  }
+
+  return respond({
+    state: "approved",
+    paymentId: lookup.paymentId,
+    accountCreated,
+    payerEmailHint: accountCreated ? null : maskEmail(lookup.payerEmail),
+  });
 }

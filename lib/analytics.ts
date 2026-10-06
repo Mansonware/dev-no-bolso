@@ -20,7 +20,12 @@ export const FUNNEL_EVENTS = [
   "checkout_created",
   "payment_success",
   "signup_complete",
+  "student_area_view",
   "first_lesson_start",
+  "first_lesson_complete",
+  "course_complete",
+  "access_revoked",
+  "access_restored",
 ] as const;
 
 export type FunnelEvent = (typeof FUNNEL_EVENTS)[number];
@@ -33,6 +38,7 @@ export const CLIENT_EVENTS: readonly FunnelEvent[] = [
   "experimentar_complete",
   "checkout_click",
   "checkout_created",
+  "student_area_view",
   "first_lesson_start",
 ];
 

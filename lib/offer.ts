@@ -12,9 +12,9 @@ export const OFFER = {
 export const OFFER_PRICE = OFFER.priceCents / 100;
 
 export const CTA = {
-  buy: `Comprar acesso — ${OFFER.priceLabel}`,
-  buyShort: "Comprar acesso",
-  freeMission: "Fazer a missão grátis",
+  buy: `Começar agora por ${OFFER.priceLabel}`,
+  buyShort: "Começar agora",
+  freeMission: "Testar grátis antes",
 } as const;
 
 export const FREE_MISSION_HREF = "/experimentar";

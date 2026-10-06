@@ -10,9 +10,10 @@ Next.js 16 (App Router), TypeScript, Tailwind CSS v4, Mercado Pago Checkout Pro,
 |---|---|
 | `/` | Landing de conversão |
 | `/experimentar` | Missão grátis, sem login: edita HTML e vê o resultado no navegador |
-| `/pagamento/sucesso` | Valida o pagamento no servidor e mostra o "Comece aqui" (conta → Aula 1) |
-| `/pagamento/pendente`, `/pagamento/falhou` | Retornos do Mercado Pago |
-| `/cadastro?payment_id=…` | Cria a conta — só com pagamento aprovado e o mesmo e-mail da compra |
+| `/pagamento/sucesso`, `/pagamento/pendente` | Valida o pagamento no servidor e mostra o próximo passo (criar conta, aguardar Pix, tentar de novo). Verifica sozinho enquanto estiver pendente |
+| `/pagamento/falhou` | Pagamento recusado/cancelado |
+| `/cadastro` | Recuperação de acesso: quem pagou e fechou a página digita o número do pagamento do comprovante |
+| `/cadastro?payment_id=…` | Confere a compra no servidor e cria a conta — só com pagamento aprovado e o mesmo e-mail da compra |
 | `/login` | Entrar com e-mail e senha |
 | `/aluno/**` | Área do aluno (exige sessão; sem ela → `/login?next=…`) |
 
@@ -37,7 +38,18 @@ UPSTASH_REDIS_REST_TOKEN=
 ```bash
 npm install
 npm run dev
+npm test        # regras críticas: pagamento, webhook, sessão, progresso, validação
+npm run lint
+npm run build
 ```
+
+## Curso e progresso
+
+- Conteúdo das aulas: `lib/course.ts` (dado puro). Uma aula nova é só texto nesse arquivo — a tela é uma só (`components/dashboard/lessons/LessonView.tsx`).
+- Modelo de `index.html` da Aula 2: `lib/siteTemplate.ts`. Atalhos para o GitHub em cada missão: `lib/githubLinks.ts`.
+- Progresso por aluno no Redis: `dev_no_bolso:progress:<sha256(email)>` (hash `done:<aula>`, `github`, `repo`, `site`).
+- `POST /api/progress` conclui uma aula: exige sessão, recusa aula bloqueada e valida a entrega no servidor.
+- Trilha sequencial: cada aula libera a próxima quando é concluída.
 
 ## Pagamento
 
@@ -45,7 +57,23 @@ npm run dev
 2. `POST /api/checkout` cria a preferência no Mercado Pago e o navegador é redirecionado ao Checkout Pro.
 3. A página de sucesso não confia em query params: consulta `GET /api/payment/[paymentId]`, que valida status, valor (em centavos), moeda e referência direto na API do Mercado Pago.
 4. Após a confirmação, o botão "Criar minha conta" leva a `/cadastro?payment_id=<id>`. O WhatsApp aparece só como suporte.
-5. O webhook reconsulta o pagamento antes de registrar a venda e valida a assinatura quando `MERCADOPAGO_WEBHOOK_SECRET` estiver configurado.
+5. O webhook reconsulta o pagamento antes de registrar a venda e valida a assinatura quando `MERCADOPAGO_WEBHOOK_SECRET` estiver configurado. Pagamento inexistente responde 200 (sem loop de reenvio); só falha temporária do Mercado Pago responde 500.
+6. Estados exibidos ao comprador (`lib/paymentCore.ts`): aprovado, pendente, recusado, devolvido, inválido (outro produto/valor), não encontrado, indisponível.
+
+## Acesso, reembolso e limites (regras únicas, testadas)
+
+| Regra | Onde |
+|---|---|
+| Classificar o pagamento (produto, valor em centavos, moeda, referência, status) | `lib/paymentCore.ts` → `classifyPayment` |
+| Pode virar conta? (aprovado, do produto, e-mail da compra) | `lib/paymentCore.ts` → `checkSignupEligibility` |
+| Limite de consultas de pagamento (por IP, números distintos por IP, por pagamento) | `lib/paymentGuardCore.ts`; usado pela API de status, pelo `/cadastro` e pelo cadastro |
+| Acesso ao conteúdo (`active` / `revoked`) | `lib/entitlementCore.ts` |
+| Webhook: reconsulta, venda idempotente, acesso, replay | `lib/webhookCore.ts` |
+
+- **Reembolso ou chargeback** revoga o acesso (`dev_no_bolso:entitlement:<paymentId>`). Conta e progresso ficam guardados; `/aluno` leva para `/acesso-suspenso`. Se o pagamento voltar a `approved`, o acesso volta.
+- **Revisão diária:** se o webhook falhar, a área do aluno reconfere o pagamento no Mercado Pago no máximo 1x por dia, depois da resposta.
+- **Webhook:** assinatura obrigatória quando `MERCADOPAGO_WEBHOOK_SECRET` existe; `ts` no futuro é recusado; a mesma notificação assinada já processada é só confirmada (TTL 7 dias). `ts` antigo NÃO é recusado, porque o Mercado Pago reenvia a cada 15 min por bastante tempo.
+- **Uma compra = uma conta:** script Lua atômico em `lib/redisScripts.ts`, testado num `redis-server` real.
 
 ## Contas e sessões
 
@@ -74,7 +102,10 @@ First-party, mínimo e sem PII (sem IP, user agent, cookie ou e-mail). O navegad
 | `checkout_created` | Preferência de checkout criada antes do redirecionamento |
 | `payment_success` | Pagamento aprovado validado no servidor (1x por pagamento) |
 | `signup_complete` | Cadastro pago concluído |
+| `student_area_view` | Área do aluno aberta (1x por sessão) |
 | `first_lesson_start` | Primeira aula paga aberta no navegador |
+| `first_lesson_complete` | Aula 1 concluída (servidor) |
+| `course_complete` | Última aula concluída (servidor) |
 
 Chaves no Upstash: `dev_no_bolso:funnel:total` e `dev_no_bolso:funnel:day:YYYY-MM-DD` (hashes `campo → contagem`). Sem Redis configurado, os eventos são ignorados em silêncio.
 

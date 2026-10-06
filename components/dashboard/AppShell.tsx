@@ -53,7 +53,7 @@ export function AppShell({ studentName, children }: Props) {
             </div>
             <div className="min-w-0">
               <p className="text-sm font-semibold truncate">{studentName}</p>
-              <p className="text-[11px] font-mono text-slate-500">Plano Core</p>
+              <p className="text-[11px] text-slate-500">Acesso vitalício</p>
             </div>
           </div>
           <LogoutButton />
@@ -88,8 +88,8 @@ export function AppShell({ studentName, children }: Props) {
               key={item.id}
               href={item.href}
               aria-current={isActive ? "page" : undefined}
-              className={`flex flex-col items-center justify-center gap-1 py-2.5 text-[11px] font-medium ${
-                isActive ? "text-[#F5F7F6]" : "text-slate-500"
+              className={`flex min-h-14 flex-col items-center justify-center gap-1 py-2 text-[11px] font-medium ${
+                isActive ? "text-[#F5F7F6]" : "text-slate-400"
               }`}
             >
               <Icon className={`w-5 h-5 ${isActive ? "text-[#00FF88]" : ""}`} aria-hidden />

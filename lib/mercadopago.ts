@@ -1,4 +1,7 @@
 import { OFFER, OFFER_PRICE } from "@/lib/offer";
+import { classifyPayment, isValidPaymentId, type PaymentLookup } from "@/lib/paymentCore";
+
+export { isValidPaymentId, type PaymentLookup };
 
 export interface MercadoPagoPreferenceItem {
   id: string;
@@ -150,106 +153,31 @@ export async function getPaymentDetails(paymentId: string): Promise<MercadoPagoP
 }
 
 /**
- * Validação rigorosa dos dados do pagamento contra as regras de negócio
+ * Consulta o pagamento direto no Mercado Pago e devolve um estado único, já conferido contra o
+ * produto (valor em centavos, moeda, referência). Nunca lança: falhas viram "unavailable".
+ * Chamadas vindas do navegador devem passar por guardedPaymentLookup (lib/paymentAccess.ts).
  */
-export interface PaymentValidationResult {
-  valid: boolean;
-  paymentId: string;
-  status: string;
-  reason?: string;
-  transactionAmount?: number;
-  currencyId?: string;
-}
-
-export function validatePayment(payment: MercadoPagoPaymentResponse): PaymentValidationResult {
-  const paymentIdStr = String(payment.id);
-
-  if (payment.status !== "approved") {
-    return {
-      valid: false,
-      paymentId: paymentIdStr,
-      status: payment.status,
-      reason: `Status do pagamento é '${payment.status}', esperado 'approved'.`,
-    };
-  }
-
-  const amount = Number(payment.transaction_amount);
-  // Compara em centavos para não depender de arredondamento de ponto flutuante (45.99).
-  if (!Number.isFinite(amount) || Math.round(amount * 100) !== PRODUCT_CONFIG.priceCents) {
-    return {
-      valid: false,
-      paymentId: paymentIdStr,
-      status: payment.status,
-      transactionAmount: amount,
-      reason: `Valor pago (R$ ${amount}) diverge do valor oficial (${OFFER.priceLabel}).`,
-    };
-  }
-
-  if (payment.currency_id !== PRODUCT_CONFIG.currencyId) {
-    return {
-      valid: false,
-      paymentId: paymentIdStr,
-      status: payment.status,
-      currencyId: payment.currency_id,
-      reason: `Moeda '${payment.currency_id}' diverge do esperado '${PRODUCT_CONFIG.currencyId}'.`,
-    };
-  }
-
-  if (payment.external_reference !== PRODUCT_CONFIG.externalReference) {
-    return {
-      valid: false,
-      paymentId: paymentIdStr,
-      status: payment.status,
-      reason: `Referência externa '${payment.external_reference}' não corresponde a '${PRODUCT_CONFIG.externalReference}'.`,
-    };
-  }
-
-  return {
-    valid: true,
-    paymentId: paymentIdStr,
-    status: "approved",
-    transactionAmount: amount,
-    currencyId: payment.currency_id,
-  };
-}
-
-// IDs de pagamento do Mercado Pago são numéricos; qualquer outra coisa nem chega à API.
-const PAYMENT_ID_PATTERN = /^\d{1,20}$/;
-
-export function isValidPaymentId(value: unknown): value is string {
-  return typeof value === "string" && PAYMENT_ID_PATTERN.test(value);
-}
-
-export type PurchaseVerification =
-  | { ok: true; paymentId: string; payerEmail: string }
-  | { ok: false; code: "not_found" | "not_eligible" | "payer_email_missing" | "unavailable" };
-
-/**
- * Prova de compra para criar conta: consulta o pagamento direto no Mercado Pago, aplica a
- * validação de status/valor/moeda/referência e devolve o e-mail do pagador normalizado.
- * Sem payer.email não há como vincular a compra a uma pessoa — falha em vez de liberar.
- */
-export async function verifyPurchaseForSignup(paymentId: string): Promise<PurchaseVerification> {
-  if (!isCheckoutConfigured()) return { ok: false, code: "unavailable" };
+export async function lookupPayment(paymentId: string): Promise<PaymentLookup> {
+  if (!isValidPaymentId(paymentId)) return { state: "not_found", paymentId };
+  if (!isCheckoutConfigured()) return { state: "unavailable", paymentId };
 
   let payment: MercadoPagoPaymentResponse;
   try {
     payment = await getPaymentDetails(paymentId);
   } catch (error) {
     if (error instanceof PaymentLookupError && (error.status === 404 || error.status === 400)) {
-      return { ok: false, code: "not_found" };
+      return { state: "not_found", paymentId };
     }
-    return { ok: false, code: "unavailable" };
+    return { state: "unavailable", paymentId };
   }
 
-  const validation = validatePayment(payment);
-  if (!validation.valid) {
-    console.warn(`[MercadoPago] Pagamento ${validation.paymentId} recusado para cadastro: ${validation.reason}`);
-    return { ok: false, code: "not_eligible" };
+  const lookup = classifyPayment(payment, {
+    priceCents: PRODUCT_CONFIG.priceCents,
+    currencyId: PRODUCT_CONFIG.currencyId,
+    externalReference: PRODUCT_CONFIG.externalReference,
+  });
+  if (lookup.state === "invalid") {
+    console.warn(`[MercadoPago] Pagamento ${lookup.paymentId} não é do produto: ${lookup.reason}`);
   }
-
-  const payerEmail = typeof payment.payer?.email === "string" ? payment.payer.email.trim().toLowerCase() : "";
-  if (!payerEmail) return { ok: false, code: "payer_email_missing" };
-
-  return { ok: true, paymentId: validation.paymentId, payerEmail };
+  return lookup;
 }

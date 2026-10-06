@@ -1,36 +1,38 @@
 "use client";
 
 import { useEffect } from "react";
+import type { FunnelEvent } from "@/lib/analytics";
 import { track } from "@/lib/track";
 
-// Dispara landing_view uma vez por sessão do navegador (sessionStorage evita contar
-// recarregamentos e o duplo efeito do StrictMode em dev). Não guarda nada pessoal.
-export function TrackLandingView() {
+// Dispara o evento uma vez por chave de armazenamento (evita contar recarregamentos e o
+// duplo efeito do StrictMode em dev). Não guarda nada pessoal.
+function useTrackOnce(event: FunnelEvent, storage: "session" | "local", key: string) {
   useEffect(() => {
     try {
-      if (sessionStorage.getItem("dnb_landing_view")) return;
-      sessionStorage.setItem("dnb_landing_view", "1");
+      const store = storage === "session" ? sessionStorage : localStorage;
+      if (store.getItem(key)) return;
+      store.setItem(key, "1");
     } catch {
-      // sessionStorage bloqueado: conta mesmo assim.
+      // Armazenamento bloqueado (ex.: modo privado restrito): conta mesmo assim.
     }
-    track("landing_view");
-  }, []);
+    track(event);
+  }, [event, storage, key]);
+}
 
+/** Landing exibida — 1x por sessão do navegador. */
+export function TrackLandingView() {
+  useTrackOnce("landing_view", "session", "dnb_landing_view");
   return null;
 }
 
-// Marco de ativaÃ§Ã£o: conta apenas a primeira aula paga aberta neste navegador.
-// localStorage evita recontar o mesmo aluno em novas sessÃµes sem guardar qualquer PII.
-export function TrackFirstLessonStart() {
-  useEffect(() => {
-    try {
-      if (localStorage.getItem("dnb_first_lesson_start")) return;
-      localStorage.setItem("dnb_first_lesson_start", "1");
-    } catch {
-      // Armazenamento bloqueado: envia o evento sem impedir o acesso Ã  aula.
-    }
-    track("first_lesson_start");
-  }, []);
+/** Acesso à área do aluno — 1x por sessão do navegador. */
+export function TrackStudentAreaView() {
+  useTrackOnce("student_area_view", "session", "dnb_student_area_view");
+  return null;
+}
 
+/** Marco de ativação: primeira aula paga aberta neste navegador. */
+export function TrackFirstLessonStart() {
+  useTrackOnce("first_lesson_start", "local", "dnb_first_lesson_start");
   return null;
 }

@@ -16,9 +16,11 @@ import {
 
 type Props = {
   paymentId: string;
+  /** E-mail da compra mascarado (ma•••@gmail.com), para a pessoa lembrar qual usou. */
+  emailHint?: string | null;
 };
 
-export function SignupForm({ paymentId }: Props) {
+export function SignupForm({ paymentId, emailHint }: Props) {
   const router = useRouter();
   const [values, setValues] = useState<SignupValues>({ name: "", email: "", password: "", confirmPassword: "" });
   const [errors, setErrors] = useState<FieldErrors<SignupValues>>({});
@@ -78,7 +80,15 @@ export function SignupForm({ paymentId }: Props) {
           placeholder="voce@email.com"
           error={errors.email}
         />
-        <p className="mt-1.5 text-xs text-slate-500">Use o mesmo e-mail que você informou no Mercado Pago.</p>
+        <p className="mt-1.5 text-sm text-slate-400">
+          {emailHint ? (
+            <>
+              Use o e-mail da compra: <span className="font-mono text-slate-200">{emailHint}</span>
+            </>
+          ) : (
+            "Use o mesmo e-mail que você informou no Mercado Pago."
+          )}
+        </p>
       </div>
       <AuthField
         id="password"

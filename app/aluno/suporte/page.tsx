@@ -2,13 +2,13 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowLeft, ExternalLink, MessageCircle } from "lucide-react";
 import { PageHeader } from "@/components/dashboard/PageHeader";
-import { requireUser } from "@/lib/auth";
+import { requireStudent } from "@/lib/auth";
 import { SUPPORT_MESSAGES, supportWhatsAppUrl } from "@/lib/support";
 
-export const metadata: Metadata = { title: "Suporte | DEV NO BOLSO" };
+export const metadata: Metadata = { title: "Suporte | Dev no Bolso" };
 
 export default async function SuportePage() {
-  await requireUser("/aluno/suporte");
+  await requireStudent("/aluno/suporte");
   const whatsappUrl = supportWhatsAppUrl(SUPPORT_MESSAGES.student);
 
   return (

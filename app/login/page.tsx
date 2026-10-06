@@ -7,7 +7,7 @@ import { getCurrentUser, safeNextPath } from "@/lib/auth";
 import { SUPPORT_MESSAGES, supportWhatsAppUrl } from "@/lib/support";
 
 export const metadata: Metadata = {
-  title: "Entrar | DEV NO BOLSO",
+  title: "Entrar | Dev no Bolso",
   robots: { index: false, follow: false },
 };
 
@@ -43,8 +43,14 @@ export default async function LoginPage({ searchParams }: Props) {
             )}
           </p>
           <p>
+            Pagou e ainda não criou a conta?{" "}
+            <Link href="/cadastro" className="font-semibold text-[#00FF88] hover:underline">
+              Criar conta
+            </Link>
+          </p>
+          <p>
             Ainda não comprou?{" "}
-            <Link href="/#oferta" className="font-semibold text-[#00FF88] hover:underline">
+            <Link href="/#oferta" className="font-semibold text-[#F5F7F6] underline underline-offset-4">
               Ver a oferta
             </Link>
           </p>
