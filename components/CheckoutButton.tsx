@@ -1,27 +1,35 @@
 "use client";
 
 import { useState } from "react";
-import { Loader2, ArrowRight, Lock } from "lucide-react";
+import { Loader2, ArrowRight } from "lucide-react";
+import { CTA } from "@/lib/offer";
+import { track } from "@/lib/track";
+import type { Placement } from "@/lib/analytics";
 
 interface CheckoutButtonProps {
   label?: string;
   className?: string;
   size?: "default" | "large" | "compact";
+  variant?: "primary" | "secondary";
+  // Onde o botão está na página — vira o campo checkout_click:<placement> no analytics.
+  placement?: Placement;
   id?: string;
-  soldOut?: boolean;
 }
 
 export function CheckoutButton({
-  label = "GARANTIR MINHA VAGA — R$20",
+  label = CTA.buy,
   className = "",
   size = "large",
+  variant = "primary",
+  placement,
   id = "cta-checkout-button",
-  soldOut = false,
 }: CheckoutButtonProps) {
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const handleCheckout = async () => {
+    track("checkout_click", placement);
+
     try {
       setLoading(true);
       setErrorMessage(null);
@@ -37,7 +45,7 @@ export function CheckoutButton({
 
       if (!response.ok || !data.success || !data.init_point) {
         throw new Error(
-          data.error || "Não foi possível gerar a preferência de pagamento no momento."
+          data.error || "Não foi possível abrir o pagamento agora. Tente novamente em alguns minutos."
         );
       }
 
@@ -46,62 +54,48 @@ export function CheckoutButton({
     } catch (err: unknown) {
       const error = err as Error;
       console.error("[Checkout Error]", error);
-      setErrorMessage(error.message || "Erro inesperado ao iniciar o checkout.");
+      setErrorMessage(error.message || "Erro inesperado ao abrir o pagamento.");
       setLoading(false);
     }
   };
 
   const sizeClasses = {
-    compact: "py-2.5 px-4 text-xs sm:text-sm font-bold",
-    default: "py-3.5 px-6 text-sm sm:text-base font-extrabold",
-    large: "py-4 sm:py-5 px-6 sm:px-8 text-base sm:text-lg font-black tracking-tight",
+    compact: "h-11 px-4 text-sm font-bold",
+    default: "h-12 px-5 text-[15px] font-bold",
+    large: "h-14 px-6 text-base font-bold",
   }[size];
 
-  if (soldOut) {
-    return (
-      <div className="w-full">
-        <button
-          id={id}
-          disabled
-          className={`w-full inline-flex items-center justify-center gap-2 bg-white/5 border border-rose-500/30 text-rose-400 font-bold rounded-xl cursor-not-allowed opacity-80 ${sizeClasses} ${className}`}
-        >
-          <Lock className="w-4 h-4" />
-          <span>TURMA ESGOTADA (15/15 VAGAS)</span>
-        </button>
-      </div>
-    );
-  }
+  const variantClasses =
+    variant === "primary"
+      ? "bg-[#00FF88] text-[#050807] hover:bg-[#33FFA0]"
+      : "border border-white/15 text-[#F5F7F6] hover:border-white/30 hover:bg-white/[0.03]";
 
   return (
     <div className="w-full">
       <button
         id={id}
+        type="button"
         onClick={handleCheckout}
         disabled={loading}
-        className={`group relative w-full inline-flex items-center justify-center gap-3 bg-[#00FF88] hover:bg-[#00e57a] text-[#050807] rounded-xl transition-all duration-200 shadow-[0_0_30px_rgba(0,255,136,0.3)] hover:shadow-[0_0_45px_rgba(0,255,136,0.45)] hover:scale-[1.01] active:scale-[0.99] disabled:opacity-75 disabled:cursor-not-allowed cursor-pointer ${sizeClasses} ${className}`}
+        aria-busy={loading}
+        className={`group w-full inline-flex items-center justify-center gap-2 rounded-xl transition-colors active:scale-[0.99] disabled:opacity-70 disabled:cursor-wait cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#00FF88] ${variantClasses} ${sizeClasses} ${className}`}
       >
-        {/* Efeito de brilho interno sutil */}
-        <span className="absolute inset-0 rounded-xl bg-gradient-to-t from-black/10 to-white/20 pointer-events-none" />
-
         {loading ? (
           <>
-            <Loader2 className="w-5 h-5 animate-spin text-[#050807]" />
-            <span>CONECTANDO AO MERCADO PAGO...</span>
+            <Loader2 className="w-4 h-4 animate-spin" aria-hidden />
+            <span>Abrindo pagamento…</span>
           </>
         ) : (
           <>
-            <Lock className="w-4 h-4 text-[#050807]/70 group-hover:text-[#050807]" />
-            <span className="relative z-10">{label}</span>
-            <ArrowRight className="w-5 h-5 text-[#050807] transition-transform duration-200 group-hover:translate-x-1" />
+            <span>{label}</span>
+            <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" aria-hidden />
           </>
         )}
       </button>
 
-      {errorMessage && (
-        <div className="mt-3 p-3 rounded-lg bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs text-center flex items-center justify-center gap-2">
-          <span>{errorMessage}</span>
-        </div>
-      )}
+      <p role="status" aria-live="polite" className={errorMessage ? "mt-2 text-sm text-rose-300 text-center" : "sr-only"}>
+        {errorMessage ?? ""}
+      </p>
     </div>
   );
 }

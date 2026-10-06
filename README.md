@@ -1,53 +1,61 @@
-# DEV NO BOLSO — Turma Fundadora #01
+# Dev no Bolso
 
-Landing page de alta conversão para o treinamento **DEV NO BOLSO**, desenvolvida com Next.js (App Router), TypeScript, Tailwind CSS, integração com Checkout Pro do Mercado Pago e deploy na Vercel.
+Curso prático para iniciantes aprenderem programação do zero e publicarem o primeiro projeto usando apenas o celular, com IA como ferramenta de apoio. Preço: **R$ 45,99, pagamento único**.
 
-## 🚀 Tecnologias
+Next.js 16 (App Router), TypeScript, Tailwind CSS v4, Mercado Pago Checkout Pro, Upstash Redis (opcional) e deploy na Vercel.
 
-- **Framework**: Next.js 16 (App Router, Turbopack)
-- **Linguagem**: TypeScript
-- **Estilização**: Tailwind CSS v4 (Design Dark Tecnológico)
-- **Ícones**: Lucide React
-- **Processamento de Pagamentos**: Mercado Pago Checkout Pro
-- **Hospedagem & CI/CD**: Vercel
+## Rotas principais
 
-## ⚙️ Variáveis de Ambiente
+| Rota | O que é |
+|---|---|
+| `/` | Landing de conversão |
+| `/experimentar` | Missão grátis, sem login: edita HTML e vê o resultado no navegador |
+| `/pagamento/sucesso` | Valida o pagamento no servidor e mostra o "Comece aqui" (conta → Aula 1) |
+| `/pagamento/pendente`, `/pagamento/falhou` | Retornos do Mercado Pago |
+| `/login`, `/cadastro`, `/aluno/**` | Plataforma do aluno (**autenticação ainda é mock**) |
 
-Crie um arquivo `.env.local` na raiz baseado no `.env.example`:
+## Variáveis de ambiente
+
+Crie `.env.local` a partir do `.env.example`:
 
 ```env
-# Access Token oficial do Mercado Pago (produção ou teste)
-MERCADOPAGO_ACCESS_TOKEN=APP_USR-...
-
-# WhatsApp da Administração (formato internacional somente com dígitos)
-NEXT_PUBLIC_ADMIN_WHATSAPP=5512991070038
-
-# URL Base do site (usada para back_urls e webhooks)
+MERCADOPAGO_ACCESS_TOKEN=APP_USR-...      # sem ele, /api/checkout responde 503 e o botão mostra aviso
+NEXT_PUBLIC_ADMIN_WHATSAPP=5512991070038  # WhatsApp só para suporte
 NEXT_PUBLIC_SITE_URL=https://dev-no-bolso.vercel.app
+UPSTASH_REDIS_REST_URL=                   # opcional (analytics + registro de vendas)
+UPSTASH_REDIS_REST_TOKEN=
 ```
 
-> **Aviso de Segurança:** Nunca versione arquivos `.env.local` ou credenciais privadas no repositório.
+> Nunca versione `.env.local` ou credenciais.
 
-## 📦 Como Rodar Localmente
+## Rodando localmente
 
-1. Instale as dependências:
-   ```bash
-   npm install
-   ```
+```bash
+npm install
+npm run dev
+```
 
-2. Execute o servidor de desenvolvimento:
-   ```bash
-   npm run dev
-   ```
+## Pagamento
 
-3. Abra [http://localhost:3000](http://localhost:3000) no seu navegador.
+1. O preço é fixado no servidor a partir de `lib/offer.ts` (fonte única de preço e textos de CTA).
+2. `POST /api/checkout` cria a preferência no Mercado Pago e o navegador é redirecionado ao Checkout Pro.
+3. A página de sucesso não confia em query params: consulta `GET /api/payment/[paymentId]`, que valida status, valor (em centavos), moeda e referência direto na API do Mercado Pago.
+4. Após a confirmação, o aluno segue para criar a conta e abrir a Aula 1. O WhatsApp aparece só como suporte.
 
-## 🛡️ Fluxo de Pagamento e Segurança
+## Analytics do funil
 
-1. **Backend**: O preço de R$ 20,00 é fixado estritamente no servidor (`lib/mercadopago.ts`), tornando impossível qualquer manipulação de preço pelo cliente.
-2. **Checkout Pro**: Ao clicar em "Garantir Minha Vaga", o backend gera uma preferência oficial na API do Mercado Pago e redireciona o usuário.
-3. **Validação Server-Side**: A página de retorno não confia em query params (`?status=approved`). Ela consulta diretamente a API do Mercado Pago via `GET /api/payment/[paymentId]` e valida valor, moeda, status e referência antes de exibir a confirmação e abrir o WhatsApp da administração.
+First-party, mínimo e sem PII (sem IP, user agent, cookie ou e-mail). O navegador envia só o nome do evento (e, no clique de compra, a posição do botão) para `POST /api/events`, que grava contadores agregados no Redis.
 
-## 📄 Licença
+| Evento | Quando |
+|---|---|
+| `landing_view` | Landing exibida (1x por sessão) |
+| `free_mission_start` | Clique em "Começar a missão" (1x por sessão) |
+| `free_mission_complete` | Missão concluída (1x por sessão) |
+| `checkout_click` | Clique em qualquer botão de compra; também conta por posição: `checkout_click:hero`, `:offer`, `:final`, `:mission` |
+| `purchase_approved` | Pagamento validado no servidor (1x por pagamento) |
 
-Uso exclusivo do projeto DEV NO BOLSO.
+Chaves no Upstash: `dev_no_bolso:funnel:total` e `dev_no_bolso:funnel:day:YYYY-MM-DD` (hashes `campo → contagem`). Sem Redis configurado, os eventos são ignorados em silêncio.
+
+## Aviso
+
+O Dev no Bolso ensina habilidades práticas de programação, uso de IA e publicação de projetos. Não promete renda, emprego ou ganho financeiro.

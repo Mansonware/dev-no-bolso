@@ -1,18 +1,9 @@
 import { Redis } from "@upstash/redis";
 
-export const TOTAL_SPOTS = 15;
-export const MANUAL_APPROVED_SPOTS = 1;
-
 export const REDIS_KEYS = {
-  APPROVED_PAYMENTS: "dev_no_bolso:turma_01:approved_payments",
+  // Set com IDs de pagamentos aprovados (sem dados pessoais) — registro idempotente de vendas.
+  APPROVED_PAYMENTS: "dev_no_bolso:v2:approved_payments",
 } as const;
-
-export interface SpotsStatus {
-  total: number;
-  approved: number;
-  remaining: number;
-  soldOut: boolean;
-}
 
 /**
  * Retorna uma instância do Upstash Redis se as credenciais estiverem disponíveis.
@@ -38,50 +29,9 @@ export function getRedisClient(): Redis | null {
 }
 
 /**
- * Consulta a contagem de vagas em tempo real no Upstash Redis.
- * Soma vendas online aprovadas + vendas confirmadas manualmente (ex.: dinheiro físico).
- */
-export async function getSpotsStatus(): Promise<SpotsStatus> {
-  const redis = getRedisClient();
-
-  if (!redis) {
-    const approved = MANUAL_APPROVED_SPOTS;
-    const remaining = Math.max(0, TOTAL_SPOTS - approved);
-    return {
-      total: TOTAL_SPOTS,
-      approved,
-      remaining,
-      soldOut: remaining <= 0,
-    };
-  }
-
-  try {
-    const onlineApprovedCount = await redis.scard(REDIS_KEYS.APPROVED_PAYMENTS);
-    const approvedCount = onlineApprovedCount + MANUAL_APPROVED_SPOTS;
-    const remaining = Math.max(0, TOTAL_SPOTS - approvedCount);
-    return {
-      total: TOTAL_SPOTS,
-      approved: approvedCount,
-      remaining,
-      soldOut: remaining <= 0,
-    };
-  } catch (error) {
-    console.error("[Redis Error] Falha ao consultar vagas:", error);
-    const approved = MANUAL_APPROVED_SPOTS;
-    const remaining = Math.max(0, TOTAL_SPOTS - approved);
-    return {
-      total: TOTAL_SPOTS,
-      approved,
-      remaining,
-      soldOut: remaining <= 0,
-    };
-  }
-}
-
-/**
  * Registra um pagamento aprovado de forma estritamente idempotente.
  * Se o mesmo paymentId for consultado várias vezes (ex: refresh da página de sucesso),
- * o Redis Set garante que a contagem NÃO será debitada novamente.
+ * o Redis Set garante que ele só é contado uma vez. Retorna true apenas no primeiro registro.
  */
 export async function recordApprovedPayment(paymentId: string | number): Promise<boolean> {
   const redis = getRedisClient();
@@ -93,9 +43,6 @@ export async function recordApprovedPayment(paymentId: string | number): Promise
   try {
     // sadd retorna 1 se foi um novo elemento inserido, ou 0 se já existia
     const added = await redis.sadd(REDIS_KEYS.APPROVED_PAYMENTS, cleanId);
-    if (added === 1) {
-      console.log(`[Spots] Pagamento ${cleanId} registrado! Vaga debitada com sucesso.`);
-    }
     return added === 1;
   } catch (error) {
     console.error(`[Redis Error] Falha ao registrar pagamento ${cleanId}:`, error);

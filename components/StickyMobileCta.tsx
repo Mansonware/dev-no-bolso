@@ -1,23 +1,16 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { CheckoutButton } from "./CheckoutButton";
-import { useSpots } from "@/lib/useSpots";
+import { FreeMissionLink } from "./FreeMissionLink";
+import { OFFER } from "@/lib/offer";
 
 export function StickyMobileCta() {
   const [visible, setVisible] = useState(false);
-  const { remaining, soldOut } = useSpots();
 
   useEffect(() => {
-    const handleScroll = () => {
-      // Exibe o sticky CTA após 450px de scroll (quando o usuário passou pelo hero)
-      if (window.scrollY > 450) {
-        setVisible(true);
-      } else {
-        setVisible(false);
-      }
-    };
-
+    // Aparece depois que a pessoa passou pelo hero.
+    const handleScroll = () => setVisible(window.scrollY > 560);
+    handleScroll();
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
@@ -26,31 +19,15 @@ export function StickyMobileCta() {
 
   return (
     <aside
-      aria-label="Acesso rápido à inscrição"
-      className="fixed bottom-0 left-0 right-0 z-50 lg:hidden p-3 bg-[#050807]/92 backdrop-blur-xl border-t border-white/10 shadow-[0_-10px_30px_rgba(0,0,0,0.8)] transition-all duration-300 transform translate-y-0"
+      aria-label="Atalho para a missão grátis"
+      className="fixed inset-x-0 bottom-0 z-50 border-t border-white/[0.08] bg-[#050807]/95 px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur-md lg:hidden"
     >
-      <div className="max-w-md mx-auto flex items-center justify-between gap-3">
-        <div className="flex flex-col pl-1">
-          <div className="flex items-center gap-1.5">
-            <span className={`w-2 h-2 rounded-full ${soldOut ? "bg-rose-500" : "bg-[#00FF88] animate-pulse"}`} />
-            <span className="text-[10px] font-mono text-slate-300 uppercase font-semibold">
-              {soldOut ? "Esgotado" : `${remaining} vagas`}
-            </span>
-          </div>
-          <div className="flex items-baseline gap-1">
-            <span className="text-lg font-black text-white">R$ 20</span>
-            <span className="text-[10px] text-slate-400 font-mono">• único</span>
-          </div>
+      <div className="mx-auto flex max-w-md items-center gap-3">
+        <div className="shrink-0">
+          <p className="text-base font-black leading-tight">{OFFER.priceLabel}</p>
+          <p className="text-[11px] text-slate-400">{OFFER.billing}</p>
         </div>
-
-        <div className="flex-1 max-w-[210px]">
-          <CheckoutButton
-            id="mobile-sticky-cta"
-            label="GARANTIR VAGA"
-            size="compact"
-            soldOut={soldOut}
-          />
-        </div>
+        <FreeMissionLink size="compact" label="Testar grátis" className="flex-1" />
       </div>
     </aside>
   );

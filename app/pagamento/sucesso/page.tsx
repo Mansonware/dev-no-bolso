@@ -1,23 +1,50 @@
 "use client";
 
-import { Suspense, useEffect, useState, useRef } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { CheckCircle2, AlertTriangle, ShieldCheck, ArrowRight, Loader2, MessageCircle } from "lucide-react";
+import { AlertTriangle, ArrowRight, Check, Loader2, MessageCircle } from "lucide-react";
+import { Brand } from "@/components/dashboard/Brand";
+import { OFFER } from "@/lib/offer";
+import { SUPPORT_MESSAGES, supportWhatsAppUrl } from "@/lib/support";
 
 interface PaymentStatusState {
   loading: boolean;
   verified: boolean;
   paymentId: string | null;
   error?: string;
-  amount?: number;
 }
 
-const ADMIN_PHONE = (process.env.NEXT_PUBLIC_ADMIN_WHATSAPP || "5512991070038").replace(/\D/g, "");
+// Pós-compra = "Comece aqui". O acesso é pela plataforma (conta → Aula 1).
+// O WhatsApp aparece só como canal de suporte, nunca como entrega do curso.
+const START_STEPS = [
+  {
+    title: "Crie sua conta",
+    desc: "Ela guarda o seu progresso na trilha e no seu projeto.",
+    href: "/cadastro",
+    cta: "Criar minha conta",
+  },
+  {
+    title: "Abra a Aula 1",
+    desc: "Primeira missão: criar sua conta no GitHub, onde o seu site vai morar.",
+    href: "/aluno/aulas/1",
+    cta: "Ir para a Aula 1",
+  },
+];
 
-function buildWhatsAppUrl(pId: string) {
-  const message = `Olá! Acabei de garantir minha vaga no DEV NO BOLSO — Turma #01 ✅\n\nMeu pagamento foi aprovado.\n\nID do pagamento: ${pId}\n\nQuero receber meu acesso ao grupo.`;
-  return `https://wa.me/${ADMIN_PHONE}?text=${encodeURIComponent(message)}`;
+const supportUrl = supportWhatsAppUrl(SUPPORT_MESSAGES.payment);
+
+function Shell({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="min-h-screen bg-[#050807] text-[#F5F7F6]">
+      <header className="flex h-14 items-center border-b border-white/[0.06] px-4 sm:px-6">
+        <Link href="/" aria-label="Dev no Bolso, voltar para a página inicial">
+          <Brand />
+        </Link>
+      </header>
+      <main className="mx-auto w-full max-w-lg px-4 pt-8 pb-16 sm:pt-12">{children}</main>
+    </div>
+  );
 }
 
 function SuccessContent() {
@@ -31,13 +58,10 @@ function SuccessContent() {
     paymentId: queryPaymentId,
   });
 
-  const [countdown, setCountdown] = useState<number>(2);
-  const [redirected, setRedirected] = useState<boolean>(false);
-  const redirectTriggered = useRef(false);
-
   useEffect(() => {
     let isMounted = true;
 
+    // A confirmação vem do servidor (consulta direta ao Mercado Pago), nunca dos query params.
     async function checkPaymentServerSide() {
       if (!queryPaymentId) {
         if (isMounted) {
@@ -45,7 +69,7 @@ function SuccessContent() {
             loading: false,
             verified: false,
             paymentId: null,
-            error: "Identificador de pagamento não fornecido nos parâmetros de retorno.",
+            error: "Não recebemos o identificador do pagamento no retorno do Mercado Pago.",
           });
         }
         return;
@@ -57,29 +81,23 @@ function SuccessContent() {
 
         if (isMounted) {
           if (res.ok && data.valid === true && data.status === "approved") {
-            setState({
-              loading: false,
-              verified: true,
-              paymentId: String(data.paymentId),
-              amount: data.amount,
-            });
+            setState({ loading: false, verified: true, paymentId: String(data.paymentId) });
           } else {
             setState({
               loading: false,
               verified: false,
               paymentId: queryPaymentId,
-              error: data.reason || data.error || "O status do pagamento não pôde ser confirmado como aprovado.",
+              error: data.reason || data.error || "O pagamento ainda não aparece como aprovado.",
             });
           }
         }
-      } catch (err: unknown) {
-        const error = err as Error;
+      } catch {
         if (isMounted) {
           setState({
             loading: false,
             verified: false,
             paymentId: queryPaymentId,
-            error: error.message || "Erro de conexão ao validar pagamento.",
+            error: "Não conseguimos falar com o Mercado Pago agora. Recarregue a página em instantes.",
           });
         }
       }
@@ -92,181 +110,121 @@ function SuccessContent() {
     };
   }, [queryPaymentId]);
 
-  // Contagem regressiva e abertura automática do WhatsApp após ~2 segundos
-  useEffect(() => {
-    if (!state.verified || !state.paymentId || redirectTriggered.current) {
-      return;
-    }
+  if (state.loading) {
+    return (
+      <div role="status" className="flex flex-col items-center py-16 text-center">
+        <Loader2 className="w-7 h-7 animate-spin text-[#00FF88]" aria-hidden />
+        <p className="mt-4 text-[15px] text-slate-300">Confirmando seu pagamento com o Mercado Pago…</p>
+      </div>
+    );
+  }
 
-    const timer = setInterval(() => {
-      setCountdown((prev) => {
-        if (prev <= 1) {
-          clearInterval(timer);
-          if (!redirectTriggered.current) {
-            redirectTriggered.current = true;
-            setRedirected(true);
-            const targetUrl = buildWhatsAppUrl(state.paymentId!);
-            window.open(targetUrl, "_blank", "noopener,noreferrer");
-          }
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
+  if (state.verified && state.paymentId) {
+    return (
+      <section aria-labelledby="comece-titulo">
+        <p className="inline-flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-widest text-[#00FF88]">
+          <Check className="w-3.5 h-3.5" aria-hidden /> Pagamento confirmado
+        </p>
+        <h1 id="comece-titulo" className="mt-2 text-[28px] sm:text-4xl font-black tracking-tight leading-[1.1]">
+          Comece aqui.
+        </h1>
+        <p className="mt-3 text-[15px] leading-relaxed text-slate-300">
+          Seu acesso ao {OFFER.productName} está liberado. São dois passos para começar a primeira missão:
+        </p>
 
-    return () => clearInterval(timer);
-  }, [state.verified, state.paymentId]);
+        <ol className="mt-6 space-y-3">
+          {START_STEPS.map((step, i) => (
+            <li key={step.href} className="rounded-2xl border border-white/[0.08] bg-[#0A0F0D] p-5">
+              <p className="font-mono text-[11px] uppercase tracking-widest text-slate-400">Passo {i + 1}</p>
+              <h2 className="mt-1 text-lg font-bold">{step.title}</h2>
+              <p className="mt-1 text-sm leading-relaxed text-slate-400">{step.desc}</p>
+              <Link
+                href={step.href}
+                className={`mt-4 inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl px-5 text-[15px] font-bold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#00FF88] ${
+                  i === 0
+                    ? "bg-[#00FF88] text-[#050807] hover:bg-[#33FFA0]"
+                    : "border border-white/15 text-[#F5F7F6] hover:border-white/30"
+                }`}
+              >
+                {step.cta}
+                <ArrowRight className="w-4 h-4" aria-hidden />
+              </Link>
+            </li>
+          ))}
+        </ol>
+
+        <div className="mt-6 rounded-xl border border-white/[0.08] px-4 py-3 text-sm text-slate-400">
+          <p>
+            Guarde o número do pagamento:{" "}
+            <span className="font-mono font-semibold text-[#F5F7F6]">{state.paymentId}</span>
+          </p>
+          <p className="mt-1">
+            Travou em alguma missão? Use o{" "}
+            <Link href="/aluno/suporte" className="font-semibold text-[#F5F7F6] underline underline-offset-4">
+              suporte
+            </Link>
+            .
+          </p>
+        </div>
+      </section>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-[#050807] text-[#F5F7F6] flex items-center justify-center p-4 relative overflow-hidden font-sans">
-      {/* Luzes de fundo */}
-      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-[#00FF88]/10 rounded-full blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-10 right-10 w-72 h-72 bg-[#00D9FF]/10 rounded-full blur-[100px] pointer-events-none" />
+    <section aria-labelledby="erro-titulo">
+      <AlertTriangle className="w-7 h-7 text-amber-400" aria-hidden />
+      <h1 id="erro-titulo" className="mt-3 text-2xl font-black tracking-tight">
+        Ainda não conseguimos confirmar este pagamento
+      </h1>
+      <p className="mt-3 text-[15px] leading-relaxed text-slate-300">
+        {state.error ||
+          "O status não pôde ser confirmado com o Mercado Pago. Se você pagou por Pix ou boleto, pode levar alguns minutos."}
+      </p>
+      {state.paymentId && (
+        <p className="mt-4 rounded-xl border border-white/[0.08] px-4 py-3 font-mono text-xs text-slate-400">
+          Pagamento consultado: {state.paymentId}
+        </p>
+      )}
 
-      {/* Grid sutil */}
-      <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:32px_32px] pointer-events-none" />
-
-      <div className="w-full max-w-lg relative z-10">
-        {/* Estado de Carregamento */}
-        {state.loading && (
-          <div className="bg-[#0A0F0D] border border-white/10 rounded-2xl p-8 text-center shadow-2xl backdrop-blur-md">
-            <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-[#0D1512] border border-[#00FF88]/30 flex items-center justify-center">
-              <Loader2 className="w-8 h-8 text-[#00FF88] animate-spin" />
-            </div>
-            <h1 className="text-xl font-bold tracking-wide mb-2 text-[#F5F7F6]">
-              Consultando Mercado Pago...
-            </h1>
-            <p className="text-sm text-slate-400">
-              Validando a autenticidade e status do pagamento server-side.
-            </p>
-          </div>
+      <div className="mt-6 flex flex-col gap-3">
+        <button
+          type="button"
+          onClick={() => window.location.reload()}
+          className="inline-flex h-12 items-center justify-center rounded-xl bg-[#00FF88] px-5 text-[15px] font-bold text-[#050807] hover:bg-[#33FFA0]"
+        >
+          Verificar novamente
+        </button>
+        {supportUrl && (
+          <a
+            href={supportUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex h-12 items-center justify-center gap-2 rounded-xl border border-white/15 px-5 text-[15px] font-semibold hover:border-white/30"
+          >
+            <MessageCircle className="w-4 h-4" aria-hidden />
+            Falar com o suporte
+          </a>
         )}
-
-        {/* Estado Validado com Sucesso */}
-        {!state.loading && state.verified && state.paymentId && (
-          <div className="bg-[#0A0F0D] border border-[#00FF88]/40 rounded-2xl p-6 sm:p-8 text-center shadow-[0_0_50px_rgba(0,255,136,0.15)] backdrop-blur-xl">
-            {/* Badge Status */}
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#00FF88]/10 border border-[#00FF88]/30 text-[#00FF88] text-xs font-semibold uppercase tracking-wider mb-6">
-              <ShieldCheck className="w-4 h-4" />
-              PAGAMENTO CONFIRMADO ✅
-            </div>
-
-            <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-[#00FF88]/10 border border-[#00FF88]/50 flex items-center justify-center shadow-[0_0_25px_rgba(0,255,136,0.3)]">
-              <CheckCircle2 className="w-10 h-10 text-[#00FF88]" />
-            </div>
-
-            <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-[#F5F7F6] mb-3">
-              Sua vaga está garantida.
-            </h1>
-
-            <p className="text-slate-300 text-sm sm:text-base leading-relaxed mb-6">
-              Agora falta apenas entrar em contato com a ADM da turma para receber seu acesso ao grupo.
-            </p>
-
-            {/* Card com Detalhes do Pagamento */}
-            <div className="bg-[#050807] border border-white/10 rounded-xl p-4 mb-6 text-left">
-              <div className="flex justify-between items-center py-1 border-b border-white/5 text-xs sm:text-sm">
-                <span className="text-slate-400">Produto:</span>
-                <span className="font-semibold text-slate-200">DEV NO BOLSO — Turma #01</span>
-              </div>
-              <div className="flex justify-between items-center py-1 border-b border-white/5 text-xs sm:text-sm">
-                <span className="text-slate-400">Valor Validado:</span>
-                <span className="font-mono font-bold text-[#00FF88]">R$ 20,00</span>
-              </div>
-              <div className="flex justify-between items-center pt-2 text-xs sm:text-sm">
-                <span className="text-slate-400">ID do pagamento:</span>
-                <span className="font-mono font-bold text-white bg-white/5 px-2 py-0.5 rounded">
-                  {state.paymentId}
-                </span>
-              </div>
-            </div>
-
-            {/* Aviso de Redirecionamento Automático */}
-            <div className="mb-6 py-2 px-3 bg-[#0D1512] rounded-lg border border-white/5 text-xs text-slate-400 flex items-center justify-center gap-2">
-              <span className="inline-block w-2 h-2 rounded-full bg-[#00FF88] animate-pulse" />
-              {countdown > 0 ? (
-                <span>Abrindo WhatsApp da ADM em <strong>{countdown} segundos</strong>...</span>
-              ) : (
-                <span>{redirected ? "Redirecionamento acionado!" : "Pronto para abrir o WhatsApp!"}</span>
-              )}
-            </div>
-
-            {/* Botão de WhatsApp Principal & Fallback Obrigatório */}
-            <a
-              id="whatsapp-access-btn"
-              href={buildWhatsAppUrl(state.paymentId)}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="w-full inline-flex items-center justify-center gap-3 bg-[#00FF88] hover:bg-[#00e57a] text-black font-extrabold text-base py-4 px-6 rounded-xl transition-all duration-200 shadow-[0_0_30px_rgba(0,255,136,0.3)] hover:scale-[1.02] active:scale-[0.98]"
-            >
-              <MessageCircle className="w-5 h-5 fill-current" />
-              <span>RECEBER ACESSO NO WHATSAPP</span>
-              <ArrowRight className="w-4 h-4" />
-            </a>
-
-            <p className="text-[11px] text-slate-500 mt-4">
-              Caso seu navegador bloqueie a abertura automática, clique no botão acima para liberar seu acesso imediatamente.
-            </p>
-          </div>
-        )}
-
-        {/* Estado de Erro ou Não Confirmado */}
-        {!state.loading && (!state.verified || state.error) && (
-          <div className="bg-[#0A0F0D] border border-rose-500/30 rounded-2xl p-6 sm:p-8 text-center shadow-2xl backdrop-blur-xl">
-            <div className="w-16 h-16 mx-auto mb-5 rounded-full bg-rose-500/10 border border-rose-500/40 flex items-center justify-center">
-              <AlertTriangle className="w-8 h-8 text-rose-400" />
-            </div>
-
-            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#F5F7F6] mb-3">
-              Não foi possível validar este pagamento
-            </h1>
-
-            <p className="text-slate-400 text-sm leading-relaxed mb-6">
-              {state.error || "O status não pôde ser confirmado diretamente com a API do Mercado Pago."}
-            </p>
-
-            {state.paymentId && (
-              <div className="bg-[#050807] border border-white/10 rounded-xl p-3 mb-6 text-xs text-slate-400 font-mono">
-                ID consultado: {state.paymentId}
-              </div>
-            )}
-
-            <div className="flex flex-col sm:flex-row gap-3">
-              <Link
-                href="/"
-                className="flex-1 py-3 px-4 bg-white/10 hover:bg-white/15 text-[#F5F7F6] text-sm font-semibold rounded-xl transition-all text-center"
-              >
-                Voltar ao Início
-              </Link>
-              <a
-                href={`https://wa.me/${ADMIN_PHONE}?text=${encodeURIComponent(
-                  `Olá, tentei realizar o pagamento do DEV NO BOLSO (ID: ${state.paymentId || "desconhecido"}), mas a validação retornou pendente/não aprovada. Poderia me ajudar?`
-                )}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex-1 py-3 px-4 bg-[#00FF88] hover:bg-[#00e57a] text-black text-sm font-bold rounded-xl transition-all text-center inline-flex items-center justify-center gap-2"
-              >
-                <MessageCircle className="w-4 h-4" />
-                Falar com a ADM
-              </a>
-            </div>
-          </div>
-        )}
+        <Link href="/" className="py-2 text-center text-sm font-semibold text-slate-400 hover:text-[#F5F7F6]">
+          Voltar ao início
+        </Link>
       </div>
-    </div>
+    </section>
   );
 }
 
 export default function PagamentoSucessoPage() {
   return (
-    <Suspense
-      fallback={
-        <div className="min-h-screen bg-[#050807] flex items-center justify-center p-4">
-          <Loader2 className="w-8 h-8 text-[#00FF88] animate-spin" />
-        </div>
-      }
-    >
-      <SuccessContent />
-    </Suspense>
+    <Shell>
+      <Suspense
+        fallback={
+          <div className="flex justify-center py-16">
+            <Loader2 className="w-7 h-7 animate-spin text-[#00FF88]" aria-hidden />
+          </div>
+        }
+      >
+        <SuccessContent />
+      </Suspense>
+    </Shell>
   );
 }

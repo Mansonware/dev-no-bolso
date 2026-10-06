@@ -2,22 +2,12 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowLeft, ExternalLink, MessageCircle } from "lucide-react";
 import { PageHeader } from "@/components/dashboard/PageHeader";
+import { SUPPORT_MESSAGES, supportWhatsAppUrl } from "@/lib/support";
 
 export const metadata: Metadata = { title: "Suporte | DEV NO BOLSO" };
 
-// Mensagem fixa: não aceitar texto vindo de query string ou do aluno.
-const SUPPORT_MESSAGE = "Olá, Manson! Sou aluno do Dev no Bolso e preciso de ajuda.";
-
-// Número vem só de NEXT_PUBLIC_ADMIN_WHATSAPP (somente dígitos, com DDI e DDD).
-// Sem valor válido, a página mostra o canal como "em configuração".
-function supportWhatsAppUrl(): string | null {
-  const phone = (process.env.NEXT_PUBLIC_ADMIN_WHATSAPP ?? "").replace(/\D/g, "");
-  if (phone.length < 10 || phone.length > 15) return null;
-  return `https://wa.me/${phone}?text=${encodeURIComponent(SUPPORT_MESSAGE)}`;
-}
-
 export default function SuportePage() {
-  const whatsappUrl = supportWhatsAppUrl();
+  const whatsappUrl = supportWhatsAppUrl(SUPPORT_MESSAGES.student);
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-6 sm:px-6 lg:px-10 lg:py-10">

@@ -1,7 +1,5 @@
-"use client";
-
-import { useState } from "react";
-import { ChevronDown, HelpCircle } from "lucide-react";
+import { ChevronDown } from "lucide-react";
+import { OFFER } from "@/lib/offer";
 
 interface FaqItem {
   question: string;
@@ -10,89 +8,63 @@ interface FaqItem {
 
 const faqs: FaqItem[] = [
   {
-    question: "Preciso saber programar?",
+    question: "Nunca programei. Vou conseguir acompanhar?",
     answer:
-      "Não. A primeira turma foi pensada para permitir que iniciantes entendam o processo e acompanhem a prática.",
+      "Sim. O curso foi feito para quem está começando do zero: cada missão explica o que fazer e por quê, em passos curtos. Se quiser tirar a dúvida antes de comprar, faça a missão grátis.",
   },
   {
-    question: "Preciso de computador?",
+    question: "Dá mesmo para fazer tudo só pelo celular?",
     answer:
-      "Não obrigatoriamente. Parte importante do conteúdo envolve desenvolvimento pelo celular. Um computador amplia as possibilidades, mas não é requisito para começar.",
+      "Sim. As missões são feitas no navegador do celular, com ferramentas gratuitas. Se você tiver computador, pode usar também, mas ele não é obrigatório.",
   },
   {
-    question: "As aulas ficam gravadas?",
-    answer: "Sim. Os participantes terão acesso às gravações da turma.",
-  },
-  {
-    question: "Como recebo o grupo?",
+    question: "A IA vai fazer o projeto por mim?",
     answer:
-      "Depois que o pagamento for confirmado, você será direcionado ao WhatsApp da ADM para receber seu acesso.",
+      "Não. A IA entra como ferramenta de apoio: para explicar um trecho de código, ajudar a achar um erro ou sugerir um caminho. Você aprende a conferir a resposta em vez de copiar sem entender.",
   },
   {
-    question: "O pagamento é seguro?",
-    answer: "O pagamento será processado no ambiente do Mercado Pago.",
+    question: "Vou precisar pagar alguma ferramenta?",
+    answer:
+      "Não para seguir o curso. GitHub e GitHub Pages têm plano gratuito, suficiente para publicar o seu primeiro site, e você pode usar ferramentas de IA na versão gratuita.",
+  },
+  {
+    question: "Quanto custa? Tem mensalidade?",
+    answer: `${OFFER.priceLabel}, ${OFFER.billing}, pelo Mercado Pago. Não tem mensalidade nem cobrança recorrente.`,
+  },
+  {
+    question: "Como recebo o acesso depois de pagar?",
+    answer:
+      "Assim que o Mercado Pago confirma o pagamento, você volta para o site e vê o passo a passo para criar sua conta e começar pela primeira missão.",
+  },
+  {
+    question: "E se eu travar em alguma missão?",
+    answer:
+      "Você chama o suporte pelo WhatsApp contando em qual missão travou. O atendimento é feito por uma pessoa — não é 24h, mas toda mensagem é respondida.",
   },
 ];
 
 export function FaqAccordion() {
-  const [openIndex, setOpenIndex] = useState<number | null>(0);
-
-  const toggle = (index: number) => {
-    setOpenIndex(openIndex === index ? null : index);
-  };
-
   return (
-    <section className="py-16 sm:py-24 border-t border-white/5 relative">
-      <div className="max-w-3xl mx-auto px-4 sm:px-6">
-        <div className="text-center mb-12">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#0A0F0D] border border-white/10 text-[11px] font-mono uppercase tracking-widest text-[#00FF88] mb-3">
-            <HelpCircle className="w-3.5 h-3.5" />
-            TIRA-DÚVIDAS
-          </div>
-          <h2 className="text-2xl sm:text-4xl font-black tracking-tight text-[#F5F7F6]">
-            Perguntas Frequentes
-          </h2>
-          <p className="mt-2 text-sm text-slate-400">
-            Respostas diretas sobre como funciona a Turma Fundadora.
-          </p>
-        </div>
+    <section aria-labelledby="faq-titulo" className="border-t border-white/[0.06] px-4 py-16 sm:px-6 sm:py-24">
+      <div className="mx-auto max-w-2xl">
+        <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-slate-400">Dúvidas</p>
+        <h2 id="faq-titulo" className="mt-2 text-2xl sm:text-3xl font-black tracking-tight">
+          Perguntas frequentes
+        </h2>
 
-        <div className="space-y-3">
-          {faqs.map((faq, index) => {
-            const isOpen = openIndex === index;
-            return (
-              <div
-                key={faq.question}
-                className={`rounded-2xl border transition-all duration-200 overflow-hidden ${
-                  isOpen
-                    ? "bg-[#0A0F0D] border-[#00FF88]/30 shadow-[0_0_20px_rgba(0,255,136,0.05)]"
-                    : "bg-[#0A0F0D]/60 border-white/10 hover:border-white/20"
-                }`}
-              >
-                <button
-                  type="button"
-                  onClick={() => toggle(index)}
-                  className="w-full p-5 sm:p-6 text-left flex items-center justify-between gap-4 cursor-pointer"
-                  aria-expanded={isOpen}
-                >
-                  <span className="font-bold text-base sm:text-lg text-[#F5F7F6]">
-                    {faq.question}
-                  </span>
-                  <ChevronDown
-                    className={`w-5 h-5 text-[#00FF88] shrink-0 transition-transform duration-200 ${
-                      isOpen ? "rotate-180" : ""
-                    }`}
-                  />
-                </button>
-
-                {isOpen && (
-                  <div className="px-5 sm:px-6 pb-5 sm:pb-6 text-sm sm:text-base text-slate-300 leading-relaxed border-t border-white/5 pt-4">
-                    {faq.answer}
-                  </div>
-                )}
-              </div>
-            );
-          })}
+        <div className="mt-8 divide-y divide-white/[0.08] border-y border-white/[0.08]">
+          {faqs.map((faq) => (
+            <details key={faq.question} className="group">
+              <summary className="flex cursor-pointer list-none items-center justify-between gap-4 py-5 text-left text-[15px] sm:text-base font-semibold text-[#F5F7F6] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#00FF88] [&::-webkit-details-marker]:hidden">
+                {faq.question}
+                <ChevronDown
+                  className="w-5 h-5 shrink-0 text-slate-400 transition-transform group-open:rotate-180"
+                  aria-hidden
+                />
+              </summary>
+              <p className="pb-5 pr-8 text-[15px] leading-relaxed text-slate-300">{faq.answer}</p>
+            </details>
+          ))}
         </div>
       </div>
     </section>

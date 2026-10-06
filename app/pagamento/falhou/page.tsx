@@ -52,7 +52,7 @@ function FalhouContent() {
             className="w-full inline-flex items-center justify-center gap-2 py-3 px-6 bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white text-sm font-semibold rounded-xl transition-all"
           >
             <ArrowLeft className="w-4 h-4" />
-            <span>Voltar à Landing Page</span>
+            <span>Voltar ao início</span>
           </Link>
         </div>
       </div>

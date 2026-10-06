@@ -15,24 +15,24 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "DEV NO BOLSO | Desenvolva projetos com IA pelo celular",
+  title: "Dev no Bolso | Aprenda programação do zero pelo celular",
   description:
-    "Aprenda na prática a transformar uma ideia em um projeto publicado usando IA, Termux, GitHub e deploy.",
+    "Aprenda programação do zero e publique seu primeiro projeto usando apenas o celular. Para iniciantes, com IA como ferramenta de apoio. Teste grátis a primeira missão.",
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://devnobolso.vercel.app"),
   openGraph: {
-    title: "DEV NO BOLSO | Desenvolva projetos com IA pelo celular",
+    title: "Dev no Bolso | Aprenda programação do zero pelo celular",
     description:
-      "Aprenda na prática a transformar uma ideia em um projeto publicado usando IA, Termux, GitHub e deploy.",
+      "Aprenda programação do zero e publique seu primeiro projeto usando apenas o celular. Para iniciantes, com IA como ferramenta de apoio. Teste grátis a primeira missão.",
     url: "/",
-    siteName: "DEV NO BOLSO",
+    siteName: "Dev no Bolso",
     locale: "pt_BR",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "DEV NO BOLSO | Desenvolva projetos com IA pelo celular",
+    title: "Dev no Bolso | Aprenda programação do zero pelo celular",
     description:
-      "Aprenda na prática a transformar uma ideia em um projeto publicado usando IA, Termux, GitHub e deploy.",
+      "Aprenda programação do zero e publique seu primeiro projeto usando apenas o celular. Para iniciantes, com IA como ferramenta de apoio. Teste grátis a primeira missão.",
   },
   robots: {
     index: true,

@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getPaymentDetails, validatePayment } from "@/lib/mercadopago";
+import { recordApprovedPayment } from "@/lib/redis";
+import { recordFunnelEvent } from "@/lib/analytics";
 
 export async function GET(
   _request: NextRequest,
@@ -38,9 +40,11 @@ export async function GET(
       );
     }
 
-    // Registra a vaga preenchida no Redis de forma idempotente
-    const { recordApprovedPayment } = await import("@/lib/redis");
-    await recordApprovedPayment(validation.paymentId);
+    // Registra a venda de forma idempotente; o evento do funil só conta na primeira validação.
+    const isNewPurchase = await recordApprovedPayment(validation.paymentId);
+    if (isNewPurchase) {
+      await recordFunnelEvent("purchase_approved");
+    }
 
     return NextResponse.json({
       valid: true,

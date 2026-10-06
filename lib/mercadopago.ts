@@ -1,3 +1,5 @@
+import { OFFER, OFFER_PRICE } from "@/lib/offer";
+
 export interface MercadoPagoPreferenceItem {
   id: string;
   title: string;
@@ -26,13 +28,21 @@ export interface MercadoPagoPaymentResponse {
 }
 
 export const PRODUCT_CONFIG = {
-  id: "DEV_NO_BOLSO_TURMA_01",
-  title: "DEV NO BOLSO — Turma Fundadora #01",
-  unitPrice: 20,
-  currencyId: "BRL",
+  id: "DEV_NO_BOLSO_V2",
+  title: "Dev no Bolso — acesso ao curso",
+  unitPrice: OFFER_PRICE,
+  priceCents: OFFER.priceCents,
+  currencyId: OFFER.currencyId,
   quantity: 1,
-  externalReference: "DEV_NO_BOLSO_TURMA_01",
+  externalReference: "DEV_NO_BOLSO_V2",
 } as const;
+
+/**
+ * Indica se o checkout real está configurado neste ambiente (sem expor o token).
+ */
+export function isCheckoutConfigured(): boolean {
+  return Boolean(process.env.MERCADOPAGO_ACCESS_TOKEN?.trim());
+}
 
 /**
  * Retorna o Access Token do Mercado Pago configurado server-side
@@ -63,7 +73,7 @@ export async function createCheckoutPreference(siteUrl: string): Promise<Mercado
         quantity: PRODUCT_CONFIG.quantity,
         currency_id: PRODUCT_CONFIG.currencyId,
         unit_price: PRODUCT_CONFIG.unitPrice,
-        description: "Acesso à Turma Fundadora #01 do DEV NO BOLSO - 3 aulas, gravações, prompts e suporte.",
+        description: "Acesso ao curso Dev no Bolso: trilha prática para publicar seu primeiro projeto pelo celular.",
       },
     ],
     back_urls: {
@@ -152,13 +162,14 @@ export function validatePayment(payment: MercadoPagoPaymentResponse): PaymentVal
   }
 
   const amount = Number(payment.transaction_amount);
-  if (amount !== PRODUCT_CONFIG.unitPrice) {
+  // Compara em centavos para não depender de arredondamento de ponto flutuante (45.99).
+  if (!Number.isFinite(amount) || Math.round(amount * 100) !== PRODUCT_CONFIG.priceCents) {
     return {
       valid: false,
       paymentId: paymentIdStr,
       status: payment.status,
       transactionAmount: amount,
-      reason: `Valor pago (R$ ${amount}) diverge do valor oficial (R$ ${PRODUCT_CONFIG.unitPrice}).`,
+      reason: `Valor pago (R$ ${amount}) diverge do valor oficial (${OFFER.priceLabel}).`,
     };
   }
 

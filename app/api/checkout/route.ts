@@ -1,20 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createCheckoutPreference } from "@/lib/mercadopago";
-import { getSpotsStatus } from "@/lib/redis";
+import { createCheckoutPreference, isCheckoutConfigured } from "@/lib/mercadopago";
+
+const UNAVAILABLE_MESSAGE =
+  "O pagamento está indisponível no momento. Tente novamente em alguns minutos.";
 
 export async function POST(req: NextRequest) {
+  // Sem credencial do Mercado Pago no ambiente: falha segura, sem tentar a API.
+  if (!isCheckoutConfigured()) {
+    console.error("[API /api/checkout] MERCADOPAGO_ACCESS_TOKEN ausente — checkout desativado.");
+    return NextResponse.json(
+      { success: false, code: "checkout_not_configured", error: UNAVAILABLE_MESSAGE },
+      { status: 503 }
+    );
+  }
+
   try {
-    // Verifica se ainda existem vagas disponíveis
-    const spots = await getSpotsStatus();
-    if (spots.soldOut) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: "As vagas da Turma Fundadora #01 estão esgotadas no momento!",
-        },
-        { status: 400 }
-      );
-    }
     // Determina a URL base do site
     const envSiteUrl = process.env.NEXT_PUBLIC_SITE_URL;
     let siteUrl = envSiteUrl?.trim() || "";
@@ -47,10 +47,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(
       {
         success: false,
-        error:
-          process.env.NODE_ENV === "development"
-            ? err?.message
-            : "Não foi possível iniciar o checkout no momento. Tente novamente mais tarde.",
+        error: process.env.NODE_ENV === "development" ? err?.message : UNAVAILABLE_MESSAGE,
       },
       { status: 500 }
     );
