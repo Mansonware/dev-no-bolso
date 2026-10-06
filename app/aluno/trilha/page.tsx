@@ -2,11 +2,13 @@ import type { Metadata } from "next";
 import { ModuleList } from "@/components/dashboard/ModuleList";
 import { PageHeader } from "@/components/dashboard/PageHeader";
 import { ProgressTrack } from "@/components/dashboard/ProgressTrack";
+import { requireUser } from "@/lib/auth";
 import { modules, progressStats } from "@/lib/mock/aluno";
 
 export const metadata: Metadata = { title: "Trilha | DEV NO BOLSO" };
 
-export default function TrilhaPage() {
+export default async function TrilhaPage() {
+  await requireUser("/aluno/trilha");
   const stats = progressStats();
 
   return (

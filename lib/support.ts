@@ -6,6 +6,7 @@
 export const SUPPORT_MESSAGES = {
   student: "Olá, Manson! Sou aluno do Dev no Bolso e preciso de ajuda.",
   payment: "Olá! Fiz um pagamento do Dev no Bolso e preciso de ajuda com a confirmação.",
+  account: "Olá! Comprei o Dev no Bolso e preciso de ajuda para acessar minha conta.",
 } as const;
 
 export function supportWhatsAppUrl(message: string): string | null {

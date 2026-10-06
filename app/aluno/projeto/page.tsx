@@ -3,11 +3,13 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { PageHeader } from "@/components/dashboard/PageHeader";
 import { ProjectStatus } from "@/components/dashboard/ProjectStatus";
+import { requireUser } from "@/lib/auth";
 import { currentLessonNumber, getLesson, lessonHref, project } from "@/lib/mock/aluno";
 
 export const metadata: Metadata = { title: "Meu projeto | DEV NO BOLSO" };
 
-export default function ProjetoPage() {
+export default async function ProjetoPage() {
+  await requireUser("/aluno/projeto");
   const n = currentLessonNumber();
   const lesson = getLesson(n);
   const done = project.steps.filter((s) => s.status === "feito").length;

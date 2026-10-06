@@ -25,12 +25,7 @@ export function AuthLayout({ title, subtitle, children, footer }: Props) {
 
         <div className="mt-6 rounded-2xl border border-white/[0.08] bg-[#0A0F0D] p-5 sm:p-6">{children}</div>
 
-        <p className="mt-6 text-center text-sm text-slate-400">{footer}</p>
-
-        {/* MOCK: ainda não existe autenticação real — nada é enviado ao servidor. */}
-        <p className="mt-8 text-center font-mono text-[11px] uppercase tracking-wider text-slate-600">
-          Acesso de demonstração · nenhum dado é enviado
-        </p>
+        <div className="mt-6 text-center text-sm text-slate-400">{footer}</div>
       </main>
     </div>
   );

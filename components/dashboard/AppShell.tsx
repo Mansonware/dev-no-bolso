@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { House, Route, FolderGit2, MessageCircle } from "lucide-react";
 import { Brand } from "./Brand";
+import { LogoutButton } from "./LogoutButton";
 
 const nav = [
   { id: "inicio", href: "/aluno", label: "Início", short: "Início", icon: House },
@@ -55,6 +56,7 @@ export function AppShell({ studentName, children }: Props) {
               <p className="text-[11px] font-mono text-slate-500">Plano Core</p>
             </div>
           </div>
+          <LogoutButton />
         </div>
       </aside>
 
@@ -63,8 +65,11 @@ export function AppShell({ studentName, children }: Props) {
         <Link href="/aluno" aria-label="Início">
           <Brand />
         </Link>
-        <div className="w-8 h-8 rounded-full bg-[#0D1512] border border-white/10 flex items-center justify-center text-sm font-bold text-[#00FF88]">
-          {initial}
+        <div className="flex items-center gap-1">
+          <div className="w-8 h-8 rounded-full bg-[#0D1512] border border-white/10 flex items-center justify-center text-sm font-bold text-[#00FF88]">
+            {initial}
+          </div>
+          <LogoutButton compact />
         </div>
       </header>
 

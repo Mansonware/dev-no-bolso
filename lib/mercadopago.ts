@@ -24,7 +24,19 @@ export interface MercadoPagoPaymentResponse {
   currency_id: string;
   external_reference?: string;
   date_approved?: string;
+  // Só o e-mail do pagador é lido — usado para vincular a conta à compra.
+  payer?: { email?: string | null } | null;
   [key: string]: unknown;
+}
+
+/**
+ * Erro de consulta ao Mercado Pago com o status HTTP da API (404 = pagamento inexistente).
+ */
+export class PaymentLookupError extends Error {
+  constructor(public readonly status: number) {
+    super(`Consulta de pagamento falhou: HTTP ${status}`);
+    this.name = "PaymentLookupError";
+  }
 }
 
 export const PRODUCT_CONFIG = {
@@ -130,7 +142,7 @@ export async function getPaymentDetails(paymentId: string): Promise<MercadoPagoP
   if (!response.ok) {
     const errorBody = await response.text();
     console.error(`[MercadoPago API Error] Payment ${cleanPaymentId} lookup failed:`, response.status, errorBody);
-    throw new Error(`Pagamento ${cleanPaymentId} não encontrado ou inválido.`);
+    throw new PaymentLookupError(response.status);
   }
 
   const data: MercadoPagoPaymentResponse = await response.json();
@@ -199,4 +211,45 @@ export function validatePayment(payment: MercadoPagoPaymentResponse): PaymentVal
     transactionAmount: amount,
     currencyId: payment.currency_id,
   };
+}
+
+// IDs de pagamento do Mercado Pago são numéricos; qualquer outra coisa nem chega à API.
+const PAYMENT_ID_PATTERN = /^\d{1,20}$/;
+
+export function isValidPaymentId(value: unknown): value is string {
+  return typeof value === "string" && PAYMENT_ID_PATTERN.test(value);
+}
+
+export type PurchaseVerification =
+  | { ok: true; paymentId: string; payerEmail: string }
+  | { ok: false; code: "not_found" | "not_eligible" | "payer_email_missing" | "unavailable" };
+
+/**
+ * Prova de compra para criar conta: consulta o pagamento direto no Mercado Pago, aplica a
+ * validação de status/valor/moeda/referência e devolve o e-mail do pagador normalizado.
+ * Sem payer.email não há como vincular a compra a uma pessoa — falha em vez de liberar.
+ */
+export async function verifyPurchaseForSignup(paymentId: string): Promise<PurchaseVerification> {
+  if (!isCheckoutConfigured()) return { ok: false, code: "unavailable" };
+
+  let payment: MercadoPagoPaymentResponse;
+  try {
+    payment = await getPaymentDetails(paymentId);
+  } catch (error) {
+    if (error instanceof PaymentLookupError && (error.status === 404 || error.status === 400)) {
+      return { ok: false, code: "not_found" };
+    }
+    return { ok: false, code: "unavailable" };
+  }
+
+  const validation = validatePayment(payment);
+  if (!validation.valid) {
+    console.warn(`[MercadoPago] Pagamento ${validation.paymentId} recusado para cadastro: ${validation.reason}`);
+    return { ok: false, code: "not_eligible" };
+  }
+
+  const payerEmail = typeof payment.payer?.email === "string" ? payment.payer.email.trim().toLowerCase() : "";
+  if (!payerEmail) return { ok: false, code: "payer_email_missing" };
+
+  return { ok: true, paymentId: validation.paymentId, payerEmail };
 }

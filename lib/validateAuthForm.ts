@@ -1,8 +1,8 @@
-// Validação local (somente interface) dos formulários de login e cadastro.
-// MOCK: ainda não existe autenticação real — nada disso é enviado ao servidor.
+// Validação dos formulários de login e cadastro.
+// Roda no navegador (feedback imediato) e de novo nas rotas /api/auth/* — o servidor nunca confia no cliente.
 
 export const PASSWORD_MIN_LENGTH = 8;
-const PASSWORD_MAX_LENGTH = 128;
+export const PASSWORD_MAX_LENGTH = 128;
 const EMAIL_MAX_LENGTH = 254;
 const NAME_MAX_LENGTH = 80;
 
@@ -23,12 +23,13 @@ export function validateLogin(values: LoginValues): FieldErrors<LoginValues> {
   const email = emailError(values.email);
   if (email) errors.email = email;
   if (!values.password) errors.password = "Digite sua senha.";
+  else if (values.password.length > PASSWORD_MAX_LENGTH) errors.password = "A senha é longa demais.";
   return errors;
 }
 
 export function validateSignup(values: SignupValues): FieldErrors<SignupValues> {
   const errors: FieldErrors<SignupValues> = {};
-  const name = values.name.trim();
+  const name = cleanName(values.name);
 
   if (!name) errors.name = "Digite seu nome.";
   else if (name.length < 2 || name.length > NAME_MAX_LENGTH) errors.name = "Digite um nome válido.";
@@ -45,6 +46,11 @@ export function validateSignup(values: SignupValues): FieldErrors<SignupValues> 
   else if (values.confirmPassword !== values.password) errors.confirmPassword = "As senhas não são iguais.";
 
   return errors;
+}
+
+/** Nome como será salvo: sem caracteres de controle e com espaços colapsados. */
+export function cleanName(name: string): string {
+  return name.replace(/[\u0000-\u001f\u007f]/g, "").replace(/\s+/g, " ").trim();
 }
 
 export function hasErrors<T>(errors: FieldErrors<T>): boolean {

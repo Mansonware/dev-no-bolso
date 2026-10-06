@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, Lock } from "lucide-react";
 import { LessonStages } from "@/components/dashboard/LessonStages";
+import { requireUser } from "@/lib/auth";
 import { allLessons, getLesson } from "@/lib/mock/aluno";
 
 export const dynamicParams = false;
@@ -21,6 +22,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function AulaPage({ params }: Props) {
   const { n } = await params;
+  await requireUser(`/aluno/aulas/${encodeURIComponent(n)}`);
   const number = Number(n);
   const lesson = getLesson(number);
   if (!lesson) notFound();

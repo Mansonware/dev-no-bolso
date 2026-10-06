@@ -4,8 +4,8 @@ import { ContinueLesson } from "@/components/dashboard/ContinueLesson";
 import { ModuleList } from "@/components/dashboard/ModuleList";
 import { ProgressTrack } from "@/components/dashboard/ProgressTrack";
 import { ProjectStatus } from "@/components/dashboard/ProjectStatus";
+import { requireUser } from "@/lib/auth";
 import {
-  aluno,
   currentLesson,
   currentLessonNumber,
   lessonHref,
@@ -14,7 +14,8 @@ import {
   project,
 } from "@/lib/mock/aluno";
 
-export default function AlunoDashboardPage() {
+export default async function AlunoDashboardPage() {
+  const user = await requireUser("/aluno");
   const stats = progressStats();
   const currentModule = modules.find((m) => m.number === currentLesson.moduleNumber);
   const lessonIndex = (currentModule?.lessons.findIndex((l) => l.status === "atual") ?? 0) + 1;
@@ -23,12 +24,7 @@ export default function AlunoDashboardPage() {
   return (
     <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6 lg:px-10 lg:py-10">
       <section id="inicio" className="scroll-mt-20">
-        <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-          <h1 className="text-[26px] sm:text-3xl font-black tracking-tight">Bora, {aluno.firstName}.</h1>
-          <span className="rounded-full border border-white/10 px-2 py-0.5 font-mono text-[10px] uppercase tracking-widest text-slate-500">
-            demo
-          </span>
-        </div>
+        <h1 className="text-[26px] sm:text-3xl font-black tracking-tight">Bora, {user.firstName}.</h1>
         <p className="mt-1.5 text-[15px] text-slate-400">Próximo passo: colocar o seu site no ar.</p>
       </section>
 

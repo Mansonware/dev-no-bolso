@@ -2,37 +2,55 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Loader2 } from "lucide-react";
 import { AuthField } from "./AuthField";
+import { FormAlert } from "./FormAlert";
+import { submitAuth } from "./submitAuth";
 import { hasErrors, validateLogin, type FieldErrors, type LoginValues } from "@/lib/validateAuthForm";
 
-export function LoginForm() {
+type Props = {
+  next: string;
+};
+
+export function LoginForm({ next }: Props) {
   const router = useRouter();
   const [values, setValues] = useState<LoginValues>({ email: "", password: "" });
   const [errors, setErrors] = useState<FieldErrors<LoginValues>>({});
+  const [formError, setFormError] = useState<string | null>(null);
+  const [pending, setPending] = useState(false);
 
   const update = (field: keyof LoginValues) => (value: string) => {
     setValues((prev) => ({ ...prev, [field]: value }));
     setErrors((prev) => ({ ...prev, [field]: undefined }));
   };
 
+  async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    if (pending) return;
+
+    const nextErrors = validateLogin(values);
+    setErrors(nextErrors);
+    setFormError(null);
+    if (hasErrors(nextErrors)) return;
+
+    setPending(true);
+    const result = await submitAuth("/api/auth/login", { ...values, next });
+    if (result.ok) {
+      router.replace(result.redirectTo);
+      router.refresh();
+      return;
+    }
+
+    setPending(false);
+    setFormError(result.error);
+    if (result.fieldErrors) setErrors(result.fieldErrors);
+  }
+
   return (
     // method="post" garante que a senha nunca vá para a query string, mesmo sem JavaScript.
-    <form
-      method="post"
-      noValidate
-      onSubmit={(e) => {
-        e.preventDefault();
-        const nextErrors = validateLogin(values);
-        setErrors(nextErrors);
-        if (hasErrors(nextErrors)) return;
+    <form method="post" noValidate onSubmit={onSubmit} className="flex flex-col gap-4" aria-busy={pending}>
+      {formError && <FormAlert message={formError} />}
 
-        // MOCK: não existe autenticação real ainda. Nenhum dado é enviado ou salvo;
-        // o formulário válido apenas navega para a área do aluno.
-        router.push("/aluno");
-      }}
-      className="flex flex-col gap-4"
-    >
       <AuthField
         id="email"
         label="E-mail"
@@ -55,10 +73,20 @@ export function LoginForm() {
 
       <button
         type="submit"
-        className="mt-2 h-12 inline-flex items-center justify-center gap-2 rounded-xl bg-[#00FF88] px-5 text-sm font-bold text-[#050807] transition-all hover:bg-[#33FFA0] active:scale-[0.98]"
+        disabled={pending}
+        className="mt-2 h-12 inline-flex items-center justify-center gap-2 rounded-xl bg-[#00FF88] px-5 text-sm font-bold text-[#050807] transition-all hover:bg-[#33FFA0] active:scale-[0.98] disabled:cursor-wait disabled:opacity-70"
       >
-        <span>Entrar</span>
-        <ArrowRight className="w-4 h-4" aria-hidden />
+        {pending ? (
+          <>
+            <Loader2 className="w-4 h-4 animate-spin" aria-hidden />
+            <span>Entrando…</span>
+          </>
+        ) : (
+          <>
+            <span>Entrar</span>
+            <ArrowRight className="w-4 h-4" aria-hidden />
+          </>
+        )}
       </button>
     </form>
   );

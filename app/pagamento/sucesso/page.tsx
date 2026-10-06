@@ -17,20 +17,23 @@ interface PaymentStatusState {
 
 // Pós-compra = "Comece aqui". O acesso é pela plataforma (conta → Aula 1).
 // O WhatsApp aparece só como canal de suporte, nunca como entrega do curso.
-const START_STEPS = [
-  {
-    title: "Crie sua conta",
-    desc: "Ela guarda o seu progresso na trilha e no seu projeto.",
-    href: "/cadastro",
-    cta: "Criar minha conta",
-  },
-  {
-    title: "Abra a Aula 1",
-    desc: "Primeira missão: criar sua conta no GitHub, onde o seu site vai morar.",
-    href: "/aluno/aulas/1",
-    cta: "Ir para a Aula 1",
-  },
-];
+// O cadastro leva o payment_id: o servidor confere a compra de novo no Mercado Pago antes de criar a conta.
+function startSteps(paymentId: string) {
+  return [
+    {
+      title: "Crie sua conta",
+      desc: "Sua conta libera e protege seu acesso. Use o mesmo e-mail do pagamento.",
+      href: `/cadastro?payment_id=${encodeURIComponent(paymentId)}`,
+      cta: "Criar minha conta",
+    },
+    {
+      title: "Abra a Aula 1",
+      desc: "Primeira missão: criar sua conta no GitHub, onde o seu site vai morar.",
+      href: "/aluno/aulas/1",
+      cta: "Ir para a Aula 1",
+    },
+  ];
+}
 
 const supportUrl = supportWhatsAppUrl(SUPPORT_MESSAGES.payment);
 
@@ -133,7 +136,7 @@ function SuccessContent() {
         </p>
 
         <ol className="mt-6 space-y-3">
-          {START_STEPS.map((step, i) => (
+          {startSteps(state.paymentId).map((step, i) => (
             <li key={step.href} className="rounded-2xl border border-white/[0.08] bg-[#0A0F0D] p-5">
               <p className="font-mono text-[11px] uppercase tracking-widest text-slate-400">Passo {i + 1}</p>
               <h2 className="mt-1 text-lg font-bold">{step.title}</h2>
