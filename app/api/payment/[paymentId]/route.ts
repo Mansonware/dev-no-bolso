@@ -43,7 +43,7 @@ export async function GET(
     // Registra a venda de forma idempotente; o evento do funil só conta na primeira validação.
     const isNewPurchase = await recordApprovedPayment(validation.paymentId);
     if (isNewPurchase) {
-      await recordFunnelEvent("purchase_approved");
+      await recordFunnelEvent("payment_success");
     }
 
     return NextResponse.json({

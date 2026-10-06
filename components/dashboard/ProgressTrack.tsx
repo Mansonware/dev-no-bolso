@@ -10,7 +10,7 @@ export function ProgressTrack({ modules, done, total, percent }: Props) {
           Progresso geral
         </h2>
         <p className="font-mono text-sm text-slate-400">
-          <span className="text-[#F5F7F6] font-bold">{done}</span>/{total} aulas
+          <span className="text-[#F5F7F6] font-bold">{done}</span> de {total} missões
         </p>
       </div>
 
@@ -20,7 +20,7 @@ export function ProgressTrack({ modules, done, total, percent }: Props) {
       </p>
 
       {/* Uma marca por aula, agrupadas por módulo */}
-      <div className="mt-5 flex gap-2" role="img" aria-label={`${done} de ${total} aulas concluídas`}>
+      <div className="mt-5 flex gap-2" role="img" aria-label={`${done} de ${total} missões concluídas`}>
         {modules.map((m) => (
           <div key={m.id} className="flex flex-1 gap-[3px]" style={{ flexGrow: m.lessons.length }}>
             {m.lessons.map((l) => (

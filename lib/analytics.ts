@@ -14,21 +14,26 @@ import { getRedisClient } from "@/lib/redis";
 
 export const FUNNEL_EVENTS = [
   "landing_view",
-  "free_mission_start",
-  "free_mission_complete",
+  "experimentar_start",
+  "experimentar_complete",
   "checkout_click",
-  "purchase_approved",
+  "checkout_created",
+  "payment_success",
+  "signup_complete",
+  "first_lesson_start",
 ] as const;
 
 export type FunnelEvent = (typeof FUNNEL_EVENTS)[number];
 
-// Eventos que o navegador pode enviar. "purchase_approved" só é gravado pelo servidor,
-// depois de validar o pagamento no Mercado Pago.
+// Eventos que o navegador pode enviar. Pagamento e cadastro só são gravados pelo servidor,
+// depois das validações correspondentes.
 export const CLIENT_EVENTS: readonly FunnelEvent[] = [
   "landing_view",
-  "free_mission_start",
-  "free_mission_complete",
+  "experimentar_start",
+  "experimentar_complete",
   "checkout_click",
+  "checkout_created",
+  "first_lesson_start",
 ];
 
 // Lista fechada para não deixar o cliente criar campos arbitrários no Redis.

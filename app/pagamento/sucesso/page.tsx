@@ -3,7 +3,7 @@
 import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { AlertTriangle, ArrowRight, Check, Loader2, MessageCircle } from "lucide-react";
+import { AlertTriangle, ArrowRight, Check, Circle, Loader2, MessageCircle } from "lucide-react";
 import { Brand } from "@/components/dashboard/Brand";
 import { OFFER } from "@/lib/offer";
 import { SUPPORT_MESSAGES, supportWhatsAppUrl } from "@/lib/support";
@@ -18,22 +18,12 @@ interface PaymentStatusState {
 // Pós-compra = "Comece aqui". O acesso é pela plataforma (conta → Aula 1).
 // O WhatsApp aparece só como canal de suporte, nunca como entrega do curso.
 // O cadastro leva o payment_id: o servidor confere a compra de novo no Mercado Pago antes de criar a conta.
-function startSteps(paymentId: string) {
-  return [
-    {
-      title: "Crie sua conta",
-      desc: "Sua conta libera e protege seu acesso. Use o mesmo e-mail do pagamento.",
-      href: `/cadastro?payment_id=${encodeURIComponent(paymentId)}`,
-      cta: "Criar minha conta",
-    },
-    {
-      title: "Abra a Aula 1",
-      desc: "Primeira missão: criar sua conta no GitHub, onde o seu site vai morar.",
-      href: "/aluno/aulas/1",
-      cta: "Ir para a Aula 1",
-    },
-  ];
-}
+const startSteps = [
+  { title: "Pagamento aprovado", desc: "Seu pagamento foi confirmado com segurança.", status: "done" },
+  { title: "Criar sua conta", desc: "Use o mesmo e-mail informado no Mercado Pago.", status: "current" },
+  { title: "Entrar na plataforma", desc: "Depois do cadastro, sua sessão já começa automaticamente.", status: "next" },
+  { title: "Começar a primeira missão", desc: "A próxima ação aparece em destaque na área do aluno.", status: "next" },
+] as const;
 
 const supportUrl = supportWhatsAppUrl(SUPPORT_MESSAGES.payment);
 
@@ -129,32 +119,53 @@ function SuccessContent() {
           <Check className="w-3.5 h-3.5" aria-hidden /> Pagamento confirmado
         </p>
         <h1 id="comece-titulo" className="mt-2 text-[28px] sm:text-4xl font-black tracking-tight leading-[1.1]">
-          Comece aqui.
+          Compra aprovada. Falta só criar sua conta.
         </h1>
         <p className="mt-3 text-[15px] leading-relaxed text-slate-300">
-          Seu acesso ao {OFFER.productName} está liberado. São dois passos para começar a primeira missão:
+          O pagamento do {OFFER.productName} foi confirmado. Agora siga este caminho para começar:
         </p>
 
         <ol className="mt-6 space-y-3">
-          {startSteps(state.paymentId).map((step, i) => (
-            <li key={step.href} className="rounded-2xl border border-white/[0.08] bg-[#0A0F0D] p-5">
-              <p className="font-mono text-[11px] uppercase tracking-widest text-slate-400">Passo {i + 1}</p>
-              <h2 className="mt-1 text-lg font-bold">{step.title}</h2>
-              <p className="mt-1 text-sm leading-relaxed text-slate-400">{step.desc}</p>
-              <Link
-                href={step.href}
-                className={`mt-4 inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl px-5 text-[15px] font-bold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#00FF88] ${
-                  i === 0
-                    ? "bg-[#00FF88] text-[#050807] hover:bg-[#33FFA0]"
-                    : "border border-white/15 text-[#F5F7F6] hover:border-white/30"
-                }`}
-              >
-                {step.cta}
-                <ArrowRight className="w-4 h-4" aria-hidden />
-              </Link>
+          {startSteps.map((step, i) => (
+            <li
+              key={step.title}
+              className={`flex gap-3 rounded-xl border px-4 py-3.5 ${
+                step.status === "current"
+                  ? "border-[#00FF88]/30 bg-[#00FF88]/[0.05]"
+                  : "border-white/[0.06] bg-[#0A0F0D]"
+              }`}
+            >
+              <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-white/10">
+                {step.status === "done" ? (
+                  <Check className="h-3.5 w-3.5 text-[#00FF88]" aria-hidden />
+                ) : step.status === "current" ? (
+                  <span className="h-2 w-2 rounded-full bg-[#00FF88]" aria-hidden />
+                ) : (
+                  <Circle className="h-3.5 w-3.5 text-slate-600" aria-hidden />
+                )}
+              </span>
+              <div>
+                <p className="font-mono text-[10px] uppercase tracking-widest text-slate-500">Etapa {i + 1}</p>
+                <h2 className="mt-0.5 text-[15px] font-bold">{step.title}</h2>
+                <p className="mt-0.5 text-sm leading-relaxed text-slate-400">{step.desc}</p>
+              </div>
             </li>
           ))}
         </ol>
+
+        <Link
+          href={`/cadastro?payment_id=${encodeURIComponent(state.paymentId)}`}
+          className="mt-6 inline-flex h-14 w-full items-center justify-center gap-2 rounded-xl bg-[#00FF88] px-6 text-base font-bold text-[#050807] transition-colors hover:bg-[#33FFA0] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#00FF88]"
+        >
+          Criar minha conta
+          <ArrowRight className="w-4 h-4" aria-hidden />
+        </Link>
+        <p className="mt-3 text-center text-sm text-slate-400">
+          Já criou sua conta?{" "}
+          <Link href="/login" className="font-semibold text-[#F5F7F6] underline underline-offset-4 hover:text-[#00FF88]">
+            Entrar
+          </Link>
+        </p>
 
         <div className="mt-6 rounded-xl border border-white/[0.08] px-4 py-3 text-sm text-slate-400">
           <p>

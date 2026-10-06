@@ -1,4 +1,4 @@
-import { NextRequest } from "next/server";
+import { after, type NextRequest } from "next/server";
 import { createSession, hashEmail, hashPassword, isAuthConfigured, normalizeEmail } from "@/lib/auth";
 import {
   AUTH_UNAVAILABLE_MESSAGE,
@@ -11,6 +11,7 @@ import {
 import { isValidPaymentId, verifyPurchaseForSignup } from "@/lib/mercadopago";
 import { RedisUnavailableError, createUserClaimingPayment, hitRateLimit } from "@/lib/redis";
 import { cleanName, hasErrors, validateSignup } from "@/lib/validateAuthForm";
+import { recordFunnelEvent } from "@/lib/analytics";
 
 // Limite por pagamento: impede adivinhar o e-mail do pagador por força bruta.
 const REGISTER_ATTEMPTS_PER_PAYMENT = 10;
@@ -109,6 +110,7 @@ export async function POST(req: NextRequest) {
     }
 
     await createSession(emailHash);
+    after(() => recordFunnelEvent("signup_complete"));
     return authOk("/aluno");
   } catch (error) {
     if (error instanceof RedisUnavailableError) {

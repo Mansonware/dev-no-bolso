@@ -18,3 +18,19 @@ export function TrackLandingView() {
 
   return null;
 }
+
+// Marco de ativaÃ§Ã£o: conta apenas a primeira aula paga aberta neste navegador.
+// localStorage evita recontar o mesmo aluno em novas sessÃµes sem guardar qualquer PII.
+export function TrackFirstLessonStart() {
+  useEffect(() => {
+    try {
+      if (localStorage.getItem("dnb_first_lesson_start")) return;
+      localStorage.setItem("dnb_first_lesson_start", "1");
+    } catch {
+      // Armazenamento bloqueado: envia o evento sem impedir o acesso Ã  aula.
+    }
+    track("first_lesson_start");
+  }, []);
+
+  return null;
+}

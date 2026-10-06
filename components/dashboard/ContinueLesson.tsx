@@ -2,9 +2,15 @@ import Link from "next/link";
 import { ArrowRight, Check, Lock } from "lucide-react";
 import type { currentLesson as CurrentLesson } from "@/lib/mock/aluno";
 
-type Props = { lesson: typeof CurrentLesson; lessonIndex: number; lessonCount: number; href: string };
+type Props = {
+  lesson: typeof CurrentLesson;
+  lessonIndex: number;
+  lessonCount: number;
+  href: string;
+  ctaLabel: string;
+};
 
-export function ContinueLesson({ lesson, lessonIndex, lessonCount, href }: Props) {
+export function ContinueLesson({ lesson, lessonIndex, lessonCount, href, ctaLabel }: Props) {
   return (
     <section
       aria-labelledby="continuar-titulo"
@@ -15,7 +21,7 @@ export function ContinueLesson({ lesson, lessonIndex, lessonCount, href }: Props
 
       <div className="p-5 sm:p-7">
         <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-slate-500">
-          <span className="text-[#00FF88]">Continuar aprendendo</span>
+          <span className="text-[#00FF88]">Sua próxima ação</span>
           <span className="block sm:inline">
             <span className="hidden sm:inline"> · </span>Módulo {lesson.moduleNumber} · Aula {lessonIndex} de{" "}
             {lessonCount}
@@ -58,7 +64,7 @@ export function ContinueLesson({ lesson, lessonIndex, lessonCount, href }: Props
             href={href}
             className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-[#00FF88] px-6 text-[15px] font-bold text-[#050807] transition-colors hover:bg-[#33FFA0] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#00FF88] focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0F0D]"
           >
-            Continuar missão
+            {ctaLabel}
             <ArrowRight className="w-4 h-4" aria-hidden />
           </Link>
           <span className="text-sm text-slate-400 sm:ml-2">{lesson.moduleTitle}</span>

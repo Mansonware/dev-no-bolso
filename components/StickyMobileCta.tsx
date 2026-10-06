@@ -27,7 +27,7 @@ export function StickyMobileCta() {
           <p className="text-base font-black leading-tight">{OFFER.priceLabel}</p>
           <p className="text-[11px] text-slate-400">{OFFER.billing}</p>
         </div>
-        <FreeMissionLink size="compact" label="Testar grátis" className="flex-1" />
+        <FreeMissionLink size="compact" label="Começar missão grátis" className="flex-1" />
       </div>
     </aside>
   );

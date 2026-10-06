@@ -2,7 +2,6 @@ import Link from "next/link";
 import { MessageCircle } from "lucide-react";
 import { ContinueLesson } from "@/components/dashboard/ContinueLesson";
 import { ModuleList } from "@/components/dashboard/ModuleList";
-import { ProgressTrack } from "@/components/dashboard/ProgressTrack";
 import { ProjectStatus } from "@/components/dashboard/ProjectStatus";
 import { requireUser } from "@/lib/auth";
 import {
@@ -20,12 +19,30 @@ export default async function AlunoDashboardPage() {
   const currentModule = modules.find((m) => m.number === currentLesson.moduleNumber);
   const lessonIndex = (currentModule?.lessons.findIndex((l) => l.status === "atual") ?? 0) + 1;
   const currentHref = lessonHref(currentLessonNumber());
+  const isNewStudent = stats.done === 0;
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6 lg:px-10 lg:py-10">
       <section id="inicio" className="scroll-mt-20">
-        <h1 className="text-[26px] sm:text-3xl font-black tracking-tight">Bora, {user.firstName}.</h1>
-        <p className="mt-1.5 text-[15px] text-slate-400">Próximo passo: colocar o seu site no ar.</p>
+        <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-[#00FF88]">Olá, {user.firstName}</p>
+        <h1 className="mt-2 text-[28px] sm:text-4xl font-black tracking-tight leading-tight">
+          {isNewStudent ? "Comece sua primeira missão" : "Continue de onde parou"}
+        </h1>
+        <div
+          className="mt-3 flex items-center gap-3"
+          role="progressbar"
+          aria-label="Progresso geral"
+          aria-valuemin={0}
+          aria-valuemax={stats.total}
+          aria-valuenow={stats.done}
+        >
+          <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-white/[0.08] sm:max-w-xs">
+            <span className="block h-full rounded-full bg-[#00FF88]" style={{ width: `${stats.percent}%` }} />
+          </div>
+          <span className="shrink-0 font-mono text-xs text-slate-400">
+            {stats.done} de {stats.total} missões
+          </span>
+        </div>
       </section>
 
       <div className="mt-6 grid grid-cols-[minmax(0,1fr)] gap-5 lg:mt-8 lg:grid-cols-[minmax(0,1fr)_340px] lg:gap-6">
@@ -35,14 +52,12 @@ export default async function AlunoDashboardPage() {
             lessonIndex={lessonIndex}
             lessonCount={currentModule?.lessons.length ?? 0}
             href={currentHref}
+            ctaLabel={isNewStudent ? "Começar primeira missão" : "Continuar missão"}
           />
         </div>
 
         <div className="flex flex-col gap-5 lg:col-start-2 lg:row-start-1 lg:row-span-2 lg:gap-6">
-          <div className="order-2 lg:order-1">
-            <ProgressTrack modules={modules} {...stats} />
-          </div>
-          <div className="order-1 lg:order-2">
+          <div>
             <ProjectStatus project={project} lessonHref={currentHref} detailsHref="/aluno/projeto" />
           </div>
         </div>

@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, Lock } from "lucide-react";
 import { LessonStages } from "@/components/dashboard/LessonStages";
+import { TrackFirstLessonStart } from "@/components/TrackEvent";
 import { requireUser } from "@/lib/auth";
 import { allLessons, getLesson } from "@/lib/mock/aluno";
 
@@ -73,7 +74,10 @@ export default async function AulaPage({ params }: Props) {
           <p className="mt-1 text-sm text-slate-400">Ela libera quando a aula anterior for concluída.</p>
         </section>
       ) : (
-        <LessonStages lessonStatus={lesson.status} lessonNumber={number} />
+        <>
+          <TrackFirstLessonStart />
+          <LessonStages lessonStatus={lesson.status} lessonNumber={number} />
+        </>
       )}
 
       {/* Navegação Inferior de Apoio */}

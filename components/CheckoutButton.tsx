@@ -50,6 +50,7 @@ export function CheckoutButton({
       }
 
       // Redireciona o usuário de forma limpa para o Checkout Pro do Mercado Pago
+      track("checkout_created", placement);
       window.location.href = data.init_point;
     } catch (err: unknown) {
       const error = err as Error;

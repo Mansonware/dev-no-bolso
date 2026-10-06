@@ -11,10 +11,10 @@ import { Bot, Globe, ListChecks, MessageCircle } from "lucide-react";
 import { OFFER } from "@/lib/offer";
 
 const outcomes = [
-  "Escrever seu primeiro código e entender o que cada linha faz.",
-  "Criar pequenos projetos e alterá-los sem depender de ninguém.",
-  "Usar IA para tirar dúvidas e achar erros — sem deixar que ela pense por você.",
-  "Colocar um site no ar, com um link público para mostrar a qualquer pessoa.",
+  "Um site seu publicado e funcionando na internet.",
+  "Um projeto organizado no GitHub para continuar evoluindo.",
+  "Um jeito prático de usar IA para entender, escrever e revisar código.",
+  "Um link online para mostrar seu projeto a qualquer pessoa.",
 ];
 
 const path = [
@@ -87,20 +87,29 @@ export default function HomePage() {
               id="hero-titulo"
               className="mt-4 text-[32px] leading-[1.1] sm:text-5xl font-black tracking-tight text-balance"
             >
-              Aprenda programação do zero e publique seu primeiro projeto usando apenas o celular.
+              Crie e publique seu primeiro projeto usando só o celular.
             </h1>
             <p className="mx-auto mt-5 max-w-xl text-base sm:text-lg leading-relaxed text-slate-300">
-              Missões curtas, no seu ritmo, direto no navegador do celular. A IA entra como ferramenta para tirar
-              dúvidas e revisar código — quem aprende e publica é você.
+              Aprenda programação do zero em missões curtas, direto no navegador. Você usa IA como apoio e termina
+              com um site no ar para mostrar.
             </p>
 
-            <div className="mx-auto mt-8 flex max-w-sm flex-col gap-3">
-              <FreeMissionLink id="hero-free-mission" label="Fazer a primeira missão grátis" />
-              <p className="text-xs text-slate-400">Leva poucos minutos · sem cadastro</p>
-              <CheckoutButton id="hero-checkout" placement="hero" variant="secondary" size="default" />
-              <p className="text-xs text-slate-400">
-                {OFFER.billing} · sem mensalidade · Mercado Pago
+            <div className="mx-auto mt-7 max-w-sm rounded-2xl border border-white/[0.08] bg-[#0A0F0D] p-4">
+              <p className="text-sm text-slate-300">
+                Acesso completo por <strong className="font-bold text-[#F5F7F6]">{OFFER.priceLabel} uma vez</strong>
               </p>
+              <div className="mt-4 flex flex-col gap-3">
+                <FreeMissionLink id="hero-free-mission" label="Começar missão grátis" />
+                <p className="text-xs text-slate-400">Leva poucos minutos · sem cadastro</p>
+                <CheckoutButton
+                  id="hero-checkout"
+                  placement="hero"
+                  variant="secondary"
+                  size="default"
+                  label="Quero acesso completo"
+                />
+                <p className="text-xs text-slate-400">Pagamento único · sem mensalidade · Mercado Pago</p>
+              </div>
             </div>
           </div>
 
@@ -109,10 +118,10 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* 1. O que você vai conseguir fazer */}
+        {/* 1. Resultados concretos */}
         <section aria-labelledby="resultado-titulo" className="border-t border-white/[0.06] px-4 py-16 sm:px-6 sm:py-24">
           <div className="mx-auto max-w-2xl">
-            <SectionHeading id="resultado-titulo" eyebrow="Ao final" title="O que você vai conseguir fazer" />
+            <SectionHeading id="resultado-titulo" eyebrow="Resultado" title="Você vai sair com isso" />
             <ul className="mt-8 space-y-4">
               {outcomes.map((item, i) => (
                 <li key={item} className="flex gap-4 text-base sm:text-lg leading-snug text-slate-200">
@@ -183,8 +192,14 @@ export default function HomePage() {
               custa {OFFER.priceLabel}, {OFFER.billing}.
             </p>
             <div className="mx-auto mt-8 flex max-w-sm flex-col gap-3">
-              <FreeMissionLink id="final-free-mission" />
-              <CheckoutButton id="final-checkout" placement="final" variant="secondary" size="default" />
+              <FreeMissionLink id="final-free-mission" label="Começar missão grátis" />
+              <CheckoutButton
+                id="final-checkout"
+                placement="final"
+                variant="secondary"
+                size="default"
+                label="Quero acesso completo"
+              />
             </div>
           </div>
         </section>

@@ -43,13 +43,13 @@ export function FreeMission() {
   }, [stage]);
 
   const start = () => {
-    trackOncePerSession("free_mission_start");
+    trackOncePerSession("experimentar_start");
     setStage("editar");
   };
 
   const finish = () => {
     if (!allDone) return;
-    trackOncePerSession("free_mission_complete");
+    trackOncePerSession("experimentar_complete");
     setStage("concluida");
   };
 
@@ -66,11 +66,18 @@ export function FreeMission() {
           Escreva seu primeiro código agora.
         </h1>
         <p className="mt-3 text-[15px] sm:text-base leading-relaxed text-slate-300">
-          Você vai editar duas linhas de HTML e ver virar uma página na hora, aqui no celular. Leva uns 3 minutos e
-          não precisa saber nada antes.
+          Leva cerca de 3 minutos e não exige cadastro nem conhecimento prévio.
         </p>
 
-        <ol className="mt-6 space-y-2.5">
+        <div className="mt-5 rounded-2xl border border-[#00FF88]/20 bg-[#00FF88]/[0.05] p-4">
+          <p className="font-mono text-[11px] uppercase tracking-widest text-[#00FF88]">Objetivo</p>
+          <p className="mt-1.5 text-[15px] font-semibold leading-relaxed text-slate-100">
+            Personalizar duas linhas de HTML e ver sua própria página aparecer na tela.
+          </p>
+        </div>
+
+        <p className="mt-6 text-sm font-semibold text-slate-300">Seus 3 passos</p>
+        <ol className="mt-3 space-y-2.5">
           {TASKS.map((task, i) => (
             <li
               key={task.id}
@@ -87,7 +94,7 @@ export function FreeMission() {
           onClick={start}
           className="mt-6 inline-flex h-14 w-full items-center justify-center gap-2 rounded-xl bg-[#00FF88] px-6 text-base font-bold text-[#050807] transition-colors hover:bg-[#33FFA0] active:scale-[0.99] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#00FF88]"
         >
-          Começar a missão
+          Começar missão grátis
           <ArrowRight className="w-4 h-4" aria-hidden />
         </button>
         <p className="mt-3 text-center text-xs text-slate-400">
@@ -109,13 +116,11 @@ export function FreeMission() {
           tabIndex={-1}
           className="mt-2 text-[28px] sm:text-4xl font-black tracking-tight leading-[1.1] focus:outline-none"
         >
-          Você escreveu seu primeiro código.
+          Sua primeira página já existe.
         </h1>
         <p className="mt-3 text-[15px] leading-relaxed text-slate-300">
-          O <code className="font-mono text-[#F5F7F6]">&lt;h1&gt;</code> e o{" "}
-          <code className="font-mono text-[#F5F7F6]">&lt;p&gt;</code> são HTML: dizem <em>o que</em> aparece. O{" "}
-          <code className="font-mono text-[#F5F7F6]">color</code> é CSS: diz <em>como</em> aparece. Todo site da
-          internet é feito dessa mesma base.
+          Você mudou conteúdo e estilo com HTML e CSS e viu o resultado na hora. É a mesma base usada para construir
+          páginas publicadas na internet.
         </p>
 
         <div className="mt-5">
@@ -150,10 +155,10 @@ export function FreeMission() {
             <CheckoutButton
               id="mission-checkout-cta"
               placement="mission"
-              label={`Continuar no curso — ${OFFER.priceLabel}`}
+              label={`Liberar acesso completo — ${OFFER.priceLabel}`}
             />
             <p className="mt-2 text-center text-xs text-slate-400">
-              {OFFER.billing.charAt(0).toUpperCase() + OFFER.billing.slice(1)} · pagamento pelo Mercado Pago
+              Pagamento único pelo Mercado Pago · acesso após aprovação
             </p>
           </div>
         </div>
@@ -221,6 +226,19 @@ export function FreeMission() {
             );
           })}
         </ul>
+        <div
+          className="mt-4 h-1.5 overflow-hidden rounded-full bg-white/[0.08]"
+          role="progressbar"
+          aria-label="Progresso da missão"
+          aria-valuemin={0}
+          aria-valuemax={TASKS.length}
+          aria-valuenow={doneCount}
+        >
+          <span
+            className="block h-full rounded-full bg-[#00FF88] transition-[width]"
+            style={{ width: `${(doneCount / TASKS.length) * 100}%` }}
+          />
+        </div>
       </div>
 
       <div className="mt-5">

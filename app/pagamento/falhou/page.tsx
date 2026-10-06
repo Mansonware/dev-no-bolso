@@ -6,26 +6,23 @@ import { XCircle, ArrowLeft, RefreshCw, ShieldAlert, Loader2 } from "lucide-reac
 
 function FalhouContent() {
   return (
-    <div className="min-h-screen bg-[#050807] text-[#F5F7F6] flex items-center justify-center p-4 relative overflow-hidden font-sans">
-      <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-rose-500/10 rounded-full blur-[120px] pointer-events-none" />
-      <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:32px_32px] pointer-events-none" />
-
-      <div className="w-full max-w-lg relative z-10 bg-[#0A0F0D] border border-rose-500/30 rounded-2xl p-6 sm:p-8 text-center shadow-2xl backdrop-blur-xl">
-        <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-rose-500/10 border border-rose-500/30 flex items-center justify-center shadow-[0_0_30px_rgba(244,63,94,0.2)]">
-          <XCircle className="w-10 h-10 text-rose-500" />
+    <div className="min-h-screen bg-[#050807] text-[#F5F7F6] flex items-center justify-center p-4 font-sans">
+      <div className="w-full max-w-lg bg-[#0A0F0D] border border-white/[0.08] rounded-2xl p-6 sm:p-8 text-center">
+        <div className="w-14 h-14 mx-auto mb-5 rounded-full bg-rose-500/10 border border-rose-500/25 flex items-center justify-center">
+          <XCircle className="w-7 h-7 text-rose-400" />
         </div>
 
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs font-semibold uppercase tracking-wider mb-4">
           <ShieldAlert className="w-4 h-4" />
-          Transação Não Concluída
+          Pagamento não concluído
         </div>
 
         <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-[#F5F7F6] mb-3">
-          Não foi possível confirmar seu pagamento.
+          Tente o pagamento novamente
         </h1>
 
         <p className="text-slate-300 text-sm sm:text-base leading-relaxed mb-6">
-          A transação foi recusada ou cancelada no processador. Nenhuma cobrança indevida foi realizada no seu método de pagamento.
+          A tentativa foi recusada, cancelada ou expirou no Mercado Pago. Revise os dados e tente outra vez.
         </p>
 
         <div className="p-4 bg-[#0D1512] rounded-xl border border-white/5 text-xs text-slate-400 mb-6 text-left space-y-1.5">
@@ -44,7 +41,7 @@ function FalhouContent() {
             className="w-full inline-flex items-center justify-center gap-2 bg-[#00FF88] hover:bg-[#00e57a] text-black font-extrabold py-3.5 px-6 rounded-xl transition-all duration-200 shadow-[0_0_30px_rgba(0,255,136,0.2)] hover:scale-[1.02] active:scale-[0.98]"
           >
             <RefreshCw className="w-4 h-4" />
-            <span>TENTAR NOVAMENTE</span>
+            <span>Tentar pagamento novamente</span>
           </Link>
 
           <Link
