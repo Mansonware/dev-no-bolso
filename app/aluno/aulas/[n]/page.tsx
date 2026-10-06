@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { ArrowLeft, ArrowRight, Lock } from "lucide-react";
 import { LessonView } from "@/components/dashboard/lessons/LessonView";
 import { TrackFirstLessonStart } from "@/components/TrackEvent";
-import { requireUser } from "@/lib/auth";
+import { requireStudent } from "@/lib/auth";
 import { ALL_LESSONS, getLessonByNumber, lessonHref } from "@/lib/course";
 import { getStudentProgress } from "@/lib/progress";
 
@@ -24,7 +24,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function AulaPage({ params }: Props) {
   const { n } = await params;
-  const user = await requireUser(`/aluno/aulas/${encodeURIComponent(n)}`);
+  const user = await requireStudent(`/aluno/aulas/${encodeURIComponent(n)}`);
   const number = Number(n);
   const lesson = getLessonByNumber(number);
   if (!lesson) notFound();

@@ -24,6 +24,8 @@ export const FUNNEL_EVENTS = [
   "first_lesson_start",
   "first_lesson_complete",
   "course_complete",
+  "access_revoked",
+  "access_restored",
 ] as const;
 
 export type FunnelEvent = (typeof FUNNEL_EVENTS)[number];

@@ -8,7 +8,9 @@ import {
   isSameOrigin,
   readJsonObject,
 } from "@/lib/authHttp";
-import { isValidPaymentId, verifyPurchaseForSignup } from "@/lib/mercadopago";
+import { activeEntitlement } from "@/lib/entitlementCore";
+import { clientIpFrom, guardedPaymentLookup } from "@/lib/paymentAccess";
+import { checkSignupEligibility, isValidPaymentId } from "@/lib/paymentCore";
 import { RedisUnavailableError, createUserClaimingPayment, hitRateLimit } from "@/lib/redis";
 import { cleanName, hasErrors, validateSignup } from "@/lib/validateAuthForm";
 import { recordFunnelEvent } from "@/lib/analytics";
@@ -56,8 +58,10 @@ export async function POST(req: NextRequest) {
       return authError(429, "too_many_attempts", "Muitas tentativas. Aguarde alguns minutos e tente de novo.");
     }
 
-    // Prova de compra: consulta direta ao Mercado Pago, nunca dados vindos do navegador.
-    const purchase = await verifyPurchaseForSignup(paymentId);
+    // Prova de compra: consulta protegida ao Mercado Pago + regra única de elegibilidade
+    // (lib/paymentCore.ts → checkSignupEligibility). Nada vindo do navegador libera acesso sozinho.
+    const lookup = await guardedPaymentLookup(paymentId, clientIpFrom(req.headers));
+    const purchase = checkSignupEligibility(lookup, values.email);
     if (!purchase.ok) {
       switch (purchase.code) {
         case "not_found":
@@ -80,6 +84,15 @@ export async function POST(req: NextRequest) {
             "payer_email_missing",
             "Não conseguimos confirmar o e-mail desta compra automaticamente. Fale com o suporte e informe o número do pagamento para liberarmos sua conta."
           );
+        case "email_mismatch":
+          return authError(
+            403,
+            "email_mismatch",
+            "Use o mesmo e-mail que você informou no pagamento do Mercado Pago.",
+            { email: "Este e-mail não é o da compra." }
+          );
+        case "rate_limited":
+          return authError(429, "too_many_attempts", "Muitas tentativas. Aguarde alguns minutos e tente de novo.");
         default:
           return authError(
             503,
@@ -89,16 +102,7 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    const email = normalizeEmail(values.email);
-    if (email !== purchase.payerEmail) {
-      return authError(
-        403,
-        "email_mismatch",
-        "Use o mesmo e-mail que você informou no pagamento do Mercado Pago.",
-        { email: "Este e-mail não é o da compra." }
-      );
-    }
-
+    const email = normalizeEmail(purchase.email);
     const emailHash = hashEmail(email);
     const result = await createUserClaimingPayment(emailHash, {
       name: cleanName(values.name),
@@ -106,7 +110,7 @@ export async function POST(req: NextRequest) {
       password: await hashPassword(values.password),
       paymentId: purchase.paymentId,
       createdAt: new Date().toISOString(),
-    });
+    }, activeEntitlement(new Date()));
 
     if (result === "payment_claimed") {
       return authError(409, "payment_already_claimed", "Este pagamento já foi usado para criar uma conta. Entre com seu e-mail e senha.");

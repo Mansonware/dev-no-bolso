@@ -20,6 +20,7 @@ export async function POST(req: NextRequest) {
 
   const user = await getCurrentUser();
   if (!user) return fail(401, "Sua sessão expirou. Entre de novo para salvar o progresso.");
+  if (!user.hasAccess) return fail(403, "Seu acesso ao conteúdo está suspenso. Fale com o suporte.");
 
   const body = await readJsonObject(req);
   const lessonId = typeof body?.lessonId === "string" ? body.lessonId : "";

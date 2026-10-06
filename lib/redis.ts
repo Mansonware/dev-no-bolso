@@ -1,4 +1,9 @@
 import { Redis } from "@upstash/redis";
+import { parseEntitlement, type Entitlement } from "@/lib/entitlementCore";
+import type { LimiterStore } from "@/lib/paymentGuardCore";
+import { CREATE_USER_SCRIPT, type CreateUserResult } from "@/lib/redisScripts";
+
+export type { CreateUserResult };
 
 export const REDIS_KEYS = {
   // Set com IDs de pagamentos aprovados (sem dados pessoais) — registro idempotente de vendas.
@@ -133,23 +138,15 @@ export async function getStoredUser(emailHash: string): Promise<StoredUser | nul
   return isStoredUser(value) ? value : null;
 }
 
-// Reivindica o pagamento e cria o usuário numa única operação atômica (Lua no servidor Redis):
-// duas requisições simultâneas com o mesmo paymentId nunca criam duas contas.
-const CREATE_USER_SCRIPT = `
-if redis.call("EXISTS", KEYS[1]) == 1 then return "payment_claimed" end
-if redis.call("EXISTS", KEYS[2]) == 1 then return "user_exists" end
-redis.call("SET", KEYS[1], ARGV[1])
-redis.call("SET", KEYS[2], ARGV[2])
-return "ok"
-`;
-
-export type CreateUserResult = "ok" | "payment_claimed" | "user_exists";
-
-export async function createUserClaimingPayment(emailHash: string, user: StoredUser): Promise<CreateUserResult> {
+export async function createUserClaimingPayment(
+  emailHash: string,
+  user: StoredUser,
+  entitlement: Entitlement
+): Promise<CreateUserResult> {
   const result = await requireRedis().eval<string[], string>(
     CREATE_USER_SCRIPT,
-    [AUTH_KEYS.paymentClaim(user.paymentId), AUTH_KEYS.user(emailHash)],
-    [`user:${emailHash}`, JSON.stringify(user)]
+    [AUTH_KEYS.paymentClaim(user.paymentId), AUTH_KEYS.user(emailHash), ENTITLEMENT_KEY(user.paymentId)],
+    [`user:${emailHash}`, JSON.stringify(user), JSON.stringify(entitlement)]
   );
   if (result === "ok" || result === "payment_claimed" || result === "user_exists") return result;
   throw new Error(`Resposta inesperada ao criar usuário: ${String(result)}`);
@@ -201,4 +198,53 @@ export async function getProgressHash(emailHash: string): Promise<Record<string,
 
 export async function saveProgressFields(emailHash: string, fields: Record<string, string>): Promise<void> {
   await requireRedis().hset(`${PROGRESS_PREFIX}:${emailHash}`, fields);
+}
+
+// ---------------------------------------------------------------------------
+// Acesso ao conteúdo pago (entitlement), por pagamento.
+//   dev_no_bolso:entitlement:<paymentId>   JSON { status, reason?, updatedAt, checkedAt }
+
+const ENTITLEMENT_KEY = (paymentId: string) => `dev_no_bolso:entitlement:${paymentId}`;
+
+export async function getEntitlement(paymentId: string): Promise<Entitlement | null> {
+  return parseEntitlement(await requireRedis().get<unknown>(ENTITLEMENT_KEY(paymentId)));
+}
+
+export async function setEntitlement(paymentId: string, entitlement: Entitlement): Promise<void> {
+  await requireRedis().set(ENTITLEMENT_KEY(paymentId), JSON.stringify(entitlement));
+}
+
+// ---------------------------------------------------------------------------
+// Limites de consulta de pagamento e replay do webhook.
+//   dev_no_bolso:lookup:<chave>            contador / conjunto com TTL
+//   dev_no_bolso:webhook:done:<hash>       notificação assinada já processada (TTL 7 dias)
+
+const LOOKUP_PREFIX = "dev_no_bolso:lookup";
+const WEBHOOK_DONE_TTL_SECONDS = 7 * 24 * 60 * 60;
+
+export const redisLimiterStore: LimiterStore = {
+  async count(key, windowSeconds) {
+    const redis = requireRedis();
+    const fullKey = `${LOOKUP_PREFIX}:${key}`;
+    const total = await redis.incr(fullKey);
+    if (total === 1) await redis.expire(fullKey, windowSeconds);
+    return total;
+  },
+  async distinct(key, member, windowSeconds) {
+    const fullKey = `${LOOKUP_PREFIX}:${key}`;
+    const pipeline = requireRedis().pipeline();
+    pipeline.sadd(fullKey, member);
+    pipeline.expire(fullKey, windowSeconds);
+    pipeline.scard(fullKey);
+    const [, , size] = await pipeline.exec<[number, number, number]>();
+    return size;
+  },
+};
+
+export async function wasWebhookProcessed(replayKey: string): Promise<boolean> {
+  return (await requireRedis().exists(`dev_no_bolso:webhook:done:${replayKey}`)) === 1;
+}
+
+export async function markWebhookProcessed(replayKey: string): Promise<void> {
+  await requireRedis().set(`dev_no_bolso:webhook:done:${replayKey}`, "1", { ex: WEBHOOK_DONE_TTL_SECONDS });
 }

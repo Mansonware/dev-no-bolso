@@ -1,13 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { AlertTriangle, Clock } from "lucide-react";
 import { AuthLayout } from "@/components/auth/AuthLayout";
 import { PaymentIdForm } from "@/components/auth/PaymentIdForm";
 import { SignupForm } from "@/components/auth/SignupForm";
 import { getCurrentUser } from "@/lib/auth";
-import { isValidPaymentId, lookupPayment } from "@/lib/mercadopago";
-import { maskEmail } from "@/lib/paymentCore";
+import { clientIpFrom, guardedPaymentLookup } from "@/lib/paymentAccess";
+import { isValidPaymentId, maskEmail } from "@/lib/paymentCore";
 import { isPaymentClaimed } from "@/lib/redis";
 import { SUPPORT_MESSAGES, supportWhatsAppUrl } from "@/lib/support";
 
@@ -87,33 +88,36 @@ export default async function CadastroPage({ searchParams }: Props) {
     );
   }
 
-  let claimed = false;
-  try {
-    claimed = await isPaymentClaimed(paymentId);
-  } catch {
-    claimed = false; // Sem Redis: o envio do formulário mostra a mensagem de indisponível.
-  }
+  // Mesma consulta protegida da API de status: limite por IP, por números distintos e por pagamento.
+  const lookup = await guardedPaymentLookup(paymentId, clientIpFrom(await headers()));
 
-  if (claimed) {
-    return (
-      <AuthLayout title="Sua conta já existe" subtitle="Esta compra já foi usada para criar uma conta." footer={footer}>
-        <div className="flex flex-col gap-4">
-          <p className="text-[15px] leading-relaxed text-slate-300">
-            Entre com o e-mail e a senha que você cadastrou. Esqueceu a senha? O suporte libera um novo acesso.
-          </p>
-          <Link
-            href="/login?next=/aluno"
-            className="inline-flex h-12 items-center justify-center rounded-xl bg-[#00FF88] px-5 text-[15px] font-bold text-[#050807] hover:bg-[#33FFA0]"
-          >
-            Entrar
-          </Link>
-          <SupportLink />
-        </div>
-      </AuthLayout>
-    );
-  }
+  if (lookup.state === "approved") {
+    let claimed = false;
+    try {
+      claimed = await isPaymentClaimed(paymentId);
+    } catch {
+      claimed = false; // Sem Redis: o envio do formulário mostra a mensagem de indisponível.
+    }
 
-  const lookup = await lookupPayment(paymentId);
+    if (claimed) {
+      return (
+        <AuthLayout title="Sua conta já existe" subtitle="Esta compra já foi usada para criar uma conta." footer={footer}>
+          <div className="flex flex-col gap-4">
+            <p className="text-[15px] leading-relaxed text-slate-300">
+              Entre com o e-mail e a senha que você cadastrou. Esqueceu a senha? O suporte libera um novo acesso.
+            </p>
+            <Link
+              href="/login?next=/aluno"
+              className="inline-flex h-12 items-center justify-center rounded-xl bg-[#00FF88] px-5 text-[15px] font-bold text-[#050807] hover:bg-[#33FFA0]"
+            >
+              Entrar
+            </Link>
+            <SupportLink />
+          </div>
+        </AuthLayout>
+      );
+    }
+  }
 
   if (lookup.state === "approved") {
     if (!lookup.payerEmail) {
@@ -163,6 +167,11 @@ export default async function CadastroPage({ searchParams }: Props) {
       title: "Não encontramos este pagamento",
       text: "Confira o número no comprovante do Mercado Pago e tente de novo.",
     },
+    rate_limited: {
+      tone: "wait",
+      title: "Muitas consultas seguidas",
+      text: "Por segurança, pausamos as consultas deste aparelho por alguns minutos. Tente de novo daqui a pouco ou fale com o suporte.",
+    },
     unavailable: {
       tone: "wait",
       title: "Não conseguimos confirmar agora",
@@ -179,7 +188,7 @@ export default async function CadastroPage({ searchParams }: Props) {
         </Notice>
         {lookup.state === "not_found" ? (
           <PaymentIdForm defaultValue={paymentId} />
-        ) : lookup.state === "pending" || lookup.state === "unavailable" ? (
+        ) : lookup.state === "pending" || lookup.state === "unavailable" || lookup.state === "rate_limited" ? (
           <Link
             href={`/cadastro?payment_id=${paymentId}`}
             className="inline-flex h-12 items-center justify-center rounded-xl bg-[#00FF88] px-5 text-[15px] font-bold text-[#050807] hover:bg-[#33FFA0]"

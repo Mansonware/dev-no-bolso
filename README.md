@@ -60,6 +60,21 @@ npm run build
 5. O webhook reconsulta o pagamento antes de registrar a venda e valida a assinatura quando `MERCADOPAGO_WEBHOOK_SECRET` estiver configurado. Pagamento inexistente responde 200 (sem loop de reenvio); só falha temporária do Mercado Pago responde 500.
 6. Estados exibidos ao comprador (`lib/paymentCore.ts`): aprovado, pendente, recusado, devolvido, inválido (outro produto/valor), não encontrado, indisponível.
 
+## Acesso, reembolso e limites (regras únicas, testadas)
+
+| Regra | Onde |
+|---|---|
+| Classificar o pagamento (produto, valor em centavos, moeda, referência, status) | `lib/paymentCore.ts` → `classifyPayment` |
+| Pode virar conta? (aprovado, do produto, e-mail da compra) | `lib/paymentCore.ts` → `checkSignupEligibility` |
+| Limite de consultas de pagamento (por IP, números distintos por IP, por pagamento) | `lib/paymentGuardCore.ts`; usado pela API de status, pelo `/cadastro` e pelo cadastro |
+| Acesso ao conteúdo (`active` / `revoked`) | `lib/entitlementCore.ts` |
+| Webhook: reconsulta, venda idempotente, acesso, replay | `lib/webhookCore.ts` |
+
+- **Reembolso ou chargeback** revoga o acesso (`dev_no_bolso:entitlement:<paymentId>`). Conta e progresso ficam guardados; `/aluno` leva para `/acesso-suspenso`. Se o pagamento voltar a `approved`, o acesso volta.
+- **Revisão diária:** se o webhook falhar, a área do aluno reconfere o pagamento no Mercado Pago no máximo 1x por dia, depois da resposta.
+- **Webhook:** assinatura obrigatória quando `MERCADOPAGO_WEBHOOK_SECRET` existe; `ts` no futuro é recusado; a mesma notificação assinada já processada é só confirmada (TTL 7 dias). `ts` antigo NÃO é recusado, porque o Mercado Pago reenvia a cada 15 min por bastante tempo.
+- **Uma compra = uma conta:** script Lua atômico em `lib/redisScripts.ts`, testado num `redis-server` real.
+
 ## Contas e sessões
 
 Sem serviço externo de auth: o Mercado Pago é a prova de compra e o Upstash Redis guarda usuários e sessões.

@@ -4,11 +4,11 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { AlertTriangle, ArrowRight, Check, Clock, Loader2, MessageCircle, RefreshCw, XCircle } from "lucide-react";
-import type { PaymentState } from "@/lib/paymentCore";
+import type { ClientPaymentState } from "@/lib/paymentCore";
 import { SUPPORT_MESSAGES, supportWhatsAppUrl } from "@/lib/support";
 
 type Result = {
-  state: PaymentState | "missing_id";
+  state: ClientPaymentState | "missing_id";
   paymentId: string | null;
   accountCreated?: boolean;
   payerEmailHint?: string | null;
@@ -251,6 +251,28 @@ export function PaymentStatus() {
             <Link href="/" className="py-2 text-center text-sm font-semibold text-slate-400 hover:text-[#F5F7F6]">
               Voltar ao início
             </Link>
+          </div>
+        </section>
+      );
+
+    case "rate_limited":
+      return (
+        <section aria-labelledby="status-titulo">
+          <Clock className="h-7 w-7 text-amber-300" aria-hidden />
+          <h1 id="status-titulo" className="mt-3 text-2xl font-black tracking-tight">
+            Muitas verificações seguidas
+          </h1>
+          <p className="mt-3 text-[15px] leading-relaxed text-slate-300">
+            Por segurança, pausamos as consultas deste aparelho por alguns minutos. Seu pagamento não foi afetado — tente
+            de novo daqui a pouco.
+          </p>
+          {idBox}
+          <div className="mt-6 flex flex-col gap-3">
+            <button type="button" onClick={retry} className={secondary}>
+              <RefreshCw className="h-4 w-4" aria-hidden />
+              Tentar de novo
+            </button>
+            {supportLink}
           </div>
         </section>
       );

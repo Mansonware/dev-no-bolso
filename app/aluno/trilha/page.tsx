@@ -3,13 +3,13 @@ import { ModuleList } from "@/components/dashboard/ModuleList";
 import { PageHeader } from "@/components/dashboard/PageHeader";
 import { ProgressNotice } from "@/components/dashboard/ProgressNotice";
 import { ProgressTrack } from "@/components/dashboard/ProgressTrack";
-import { requireUser } from "@/lib/auth";
+import { requireStudent } from "@/lib/auth";
 import { getStudentProgress } from "@/lib/progress";
 
 export const metadata: Metadata = { title: "Trilha | Dev no Bolso" };
 
 export default async function TrilhaPage() {
-  const user = await requireUser("/aluno/trilha");
+  const user = await requireStudent("/aluno/trilha");
   const progress = await getStudentProgress(user.id);
 
   return (

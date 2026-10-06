@@ -2,14 +2,14 @@ import type { Metadata } from "next";
 import { PageHeader } from "@/components/dashboard/PageHeader";
 import { ProgressNotice } from "@/components/dashboard/ProgressNotice";
 import { ProjectStatus } from "@/components/dashboard/ProjectStatus";
-import { requireUser } from "@/lib/auth";
+import { requireStudent } from "@/lib/auth";
 import { PROJECT_NAME } from "@/lib/course";
 import { getStudentProgress } from "@/lib/progress";
 
 export const metadata: Metadata = { title: "Meu projeto | Dev no Bolso" };
 
 export default async function ProjetoPage() {
-  const user = await requireUser("/aluno/projeto");
+  const user = await requireStudent("/aluno/projeto");
   const progress = await getStudentProgress(user.id);
 
   return (

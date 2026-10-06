@@ -4,11 +4,11 @@ import { ContinueLesson } from "@/components/dashboard/ContinueLesson";
 import { ModuleList } from "@/components/dashboard/ModuleList";
 import { ProgressNotice } from "@/components/dashboard/ProgressNotice";
 import { ProjectStatus } from "@/components/dashboard/ProjectStatus";
-import { requireUser } from "@/lib/auth";
+import { requireStudent } from "@/lib/auth";
 import { getStudentProgress } from "@/lib/progress";
 
 export default async function AlunoDashboardPage() {
-  const user = await requireUser("/aluno");
+  const user = await requireStudent("/aluno");
   const progress = await getStudentProgress(user.id);
   const isNewStudent = progress.done === 0;
 

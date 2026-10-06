@@ -39,7 +39,9 @@ test("webhook: assinatura válida passa, adulterada falha", () => {
   const v1 = createHmac("sha256", "segredo-teste").update(manifest).digest("hex");
 
   const ok = verifyMercadoPagoWebhookSignature({ xSignature: `ts=${ts},v1=${v1}`, xRequestId: "req-1", dataId: "123456" });
-  assert.deepEqual(ok, { configured: true, valid: true });
+  assert.equal(ok.configured, true);
+  assert.equal(ok.valid, true);
+  assert.equal(ok.timestampMs, 1700000000 * 1000, "ts com 10 dígitos é tratado como segundos");
 
   const wrongId = verifyMercadoPagoWebhookSignature({ xSignature: `ts=${ts},v1=${v1}`, xRequestId: "req-1", dataId: "999" });
   assert.equal(wrongId.valid, false);
