@@ -62,11 +62,17 @@ export async function POST(req: NextRequest) {
       switch (purchase.code) {
         case "not_found":
           return authError(400, "payment_not_found", "Não encontramos esse pagamento no Mercado Pago.");
+        case "pending":
+          return authError(
+            403,
+            "payment_not_eligible",
+            "Esse pagamento ainda não foi aprovado. Se pagou por Pix ou boleto, aguarde alguns minutos e tente de novo."
+          );
         case "not_eligible":
           return authError(
             403,
             "payment_not_eligible",
-            "Esse pagamento ainda não está aprovado para liberar o acesso. Se pagou por Pix ou boleto, aguarde alguns minutos e tente de novo."
+            "Esse pagamento não libera o acesso (recusado, devolvido ou de outro produto). Fale com o suporte se achar que é um erro."
           );
         case "payer_email_missing":
           return authError(

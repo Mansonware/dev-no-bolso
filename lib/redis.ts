@@ -182,3 +182,23 @@ export async function hitRateLimit(bucket: string, id: string, limit: number, wi
 export async function clearRateLimit(bucket: string, id: string): Promise<void> {
   await requireRedis().del(AUTH_KEYS.rateLimit(bucket, id));
 }
+
+/** Indica se o pagamento já foi usado para criar uma conta (sem revelar de quem). */
+export async function isPaymentClaimed(paymentId: string): Promise<boolean> {
+  return (await requireRedis().exists(AUTH_KEYS.paymentClaim(paymentId))) === 1;
+}
+
+// ---------------------------------------------------------------------------
+// Progresso do aluno.
+//   dev_no_bolso:progress:<sha256(email)>   HASH  done:<lessonId> -> ISO, github, repo, site
+// Só o que o próprio aluno informou nas entregas das aulas — nada de dado de pagamento.
+
+const PROGRESS_PREFIX = "dev_no_bolso:progress";
+
+export async function getProgressHash(emailHash: string): Promise<Record<string, unknown> | null> {
+  return requireRedis().hgetall<Record<string, unknown>>(`${PROGRESS_PREFIX}:${emailHash}`);
+}
+
+export async function saveProgressFields(emailHash: string, fields: Record<string, string>): Promise<void> {
+  await requireRedis().hset(`${PROGRESS_PREFIX}:${emailHash}`, fields);
+}

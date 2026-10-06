@@ -26,8 +26,12 @@ export {
   verifyPassword,
 } from "@/lib/authCore";
 
-/** O que as telas recebem do usuário logado — nunca hash, salt ou token. */
+/**
+ * O que as telas recebem do usuário logado — nunca senha, salt ou token.
+ * `id` é o SHA-256 do e-mail: chave do progresso no Redis. Usar só no servidor.
+ */
 export type CurrentUser = {
+  id: string;
   name: string;
   firstName: string;
 };
@@ -97,7 +101,7 @@ export const getCurrentUser = cache(async (): Promise<CurrentUser | null> => {
     const user = await getStoredUser(session.emailHash);
     if (!user) return null;
 
-    return { name: user.name, firstName: firstNameOf(user.name) };
+    return { id: session.emailHash, name: user.name, firstName: firstNameOf(user.name) };
   } catch (error) {
     console.error("[Auth] Falha ao validar sessão:", error instanceof Error ? error.message : error);
     return null;

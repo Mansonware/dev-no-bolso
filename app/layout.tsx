@@ -1,63 +1,43 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { GeistMono } from "geist/font/mono";
+import { GeistSans } from "geist/font/sans";
+import { SITE_DESCRIPTION, SITE_NAME, SITE_TITLE, SITE_URL } from "@/lib/site";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-  display: "swap",
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-  display: "swap",
-});
-
 export const metadata: Metadata = {
-  title: "Dev no Bolso | Aprenda programação do zero pelo celular",
-  description:
-    "Aprenda programação do zero e publique seu primeiro projeto usando apenas o celular. Para iniciantes, com IA como ferramenta de apoio. Teste grátis a primeira missão.",
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://devnobolso.vercel.app"),
+  metadataBase: new URL(SITE_URL),
+  title: SITE_TITLE,
+  description: SITE_DESCRIPTION,
+  applicationName: SITE_NAME,
+  alternates: { canonical: "/" },
   openGraph: {
-    title: "Dev no Bolso | Aprenda programação do zero pelo celular",
-    description:
-      "Aprenda programação do zero e publique seu primeiro projeto usando apenas o celular. Para iniciantes, com IA como ferramenta de apoio. Teste grátis a primeira missão.",
+    title: SITE_TITLE,
+    description: SITE_DESCRIPTION,
     url: "/",
-    siteName: "Dev no Bolso",
+    siteName: SITE_NAME,
     locale: "pt_BR",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Dev no Bolso | Aprenda programação do zero pelo celular",
-    description:
-      "Aprenda programação do zero e publique seu primeiro projeto usando apenas o celular. Para iniciantes, com IA como ferramenta de apoio. Teste grátis a primeira missão.",
+    title: SITE_TITLE,
+    description: SITE_DESCRIPTION,
   },
-  robots: {
-    index: true,
-    follow: true,
-  },
+  robots: { index: true, follow: true },
 };
 
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   maximumScale: 5,
+  viewportFit: "cover",
   themeColor: "#050807",
 };
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html
-      lang="pt-BR"
-      className={`${geistSans.variable} ${geistMono.variable} dark antialiased scroll-smooth`}
-    >
-      <body className="min-h-screen bg-[#050807] text-[#F5F7F6] font-sans selection:bg-[#00FF88] selection:text-[#050807]">
+    <html lang="pt-BR" className={`${GeistSans.variable} ${GeistMono.variable} dark antialiased scroll-smooth`}>
+      <body className="min-h-screen bg-[#050807] font-sans text-[#F5F7F6] selection:bg-[#00FF88] selection:text-[#050807]">
         {children}
       </body>
     </html>

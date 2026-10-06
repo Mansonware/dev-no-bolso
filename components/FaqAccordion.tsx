@@ -10,7 +10,7 @@ const faqs: FaqItem[] = [
   {
     question: "Nunca programei. Vou conseguir acompanhar?",
     answer:
-      "Sim. O curso foi feito para quem está começando do zero: cada missão explica o que fazer e por quê, em passos curtos. Se quiser tirar a dúvida antes de comprar, faça a missão grátis.",
+      "Sim. O curso foi feito para quem está começando do zero: cada aula explica o que fazer e por quê, em passos curtos, com atalhos que abrem a tela certa do GitHub. Se quiser tirar a dúvida antes de comprar, faça a missão grátis.",
   },
   {
     question: "Dá mesmo para fazer tudo só pelo celular?",
@@ -20,7 +20,7 @@ const faqs: FaqItem[] = [
   {
     question: "A IA vai fazer o projeto por mim?",
     answer:
-      "Não. A IA entra como ferramenta de apoio: para explicar um trecho de código, ajudar a achar um erro ou sugerir um caminho. Você aprende a conferir a resposta em vez de copiar sem entender.",
+      "Não. A IA entra como apoio: cada aula traz um prompt pronto para pedir uma explicação ou ajuda com um erro. Você faz o projeto e aprende a conferir a resposta em vez de copiar sem entender.",
   },
   {
     question: "Vou precisar pagar alguma ferramenta?",
@@ -34,7 +34,17 @@ const faqs: FaqItem[] = [
   {
     question: "Como recebo o acesso depois de pagar?",
     answer:
-      "Assim que o Mercado Pago confirma o pagamento, você volta para o site e vê o passo a passo para criar sua conta e começar pela primeira missão.",
+      "Assim que o Mercado Pago confirma o pagamento, você volta para o site, cria sua conta com o e-mail da compra e entra direto na primeira aula. Tudo pela web — não depende de ninguém te mandar nada.",
+  },
+  {
+    question: "Paguei e fechei a página sem criar a conta. E agora?",
+    answer:
+      "Sem problema. Toque em Entrar → “Criar conta” e digite o número do pagamento que está no comprovante do Mercado Pago. Se pagou por Pix, ele costuma aprovar em poucos minutos.",
+  },
+  {
+    question: "E se eu não gostar?",
+    answer:
+      "Pelo Código de Defesa do Consumidor, compras pela internet podem ser canceladas em até 7 dias. É só chamar o suporte no WhatsApp com o número do pagamento.",
   },
   {
     question: "E se eu travar em alguma missão?",

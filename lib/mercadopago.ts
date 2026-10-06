@@ -1,4 +1,5 @@
 import { OFFER, OFFER_PRICE } from "@/lib/offer";
+import { stateFromMercadoPagoStatus, type PaymentState } from "@/lib/paymentCore";
 
 export interface MercadoPagoPreferenceItem {
   id: string;
@@ -220,36 +221,62 @@ export function isValidPaymentId(value: unknown): value is string {
   return typeof value === "string" && PAYMENT_ID_PATTERN.test(value);
 }
 
-export type PurchaseVerification =
-  | { ok: true; paymentId: string; payerEmail: string }
-  | { ok: false; code: "not_found" | "not_eligible" | "payer_email_missing" | "unavailable" };
+export type PaymentLookup =
+  | { state: "approved"; paymentId: string; payerEmail: string | null }
+  | { state: Exclude<PaymentState, "approved">; paymentId: string };
 
 /**
- * Prova de compra para criar conta: consulta o pagamento direto no Mercado Pago, aplica a
- * validação de status/valor/moeda/referência e devolve o e-mail do pagador normalizado.
- * Sem payer.email não há como vincular a compra a uma pessoa — falha em vez de liberar.
+ * Consulta o pagamento direto no Mercado Pago e devolve um estado único, já validado
+ * (status, valor em centavos, moeda e referência). Nunca lança: falhas viram "unavailable".
  */
-export async function verifyPurchaseForSignup(paymentId: string): Promise<PurchaseVerification> {
-  if (!isCheckoutConfigured()) return { ok: false, code: "unavailable" };
+export async function lookupPayment(paymentId: string): Promise<PaymentLookup> {
+  if (!isValidPaymentId(paymentId)) return { state: "not_found", paymentId };
+  if (!isCheckoutConfigured()) return { state: "unavailable", paymentId };
 
   let payment: MercadoPagoPaymentResponse;
   try {
     payment = await getPaymentDetails(paymentId);
   } catch (error) {
     if (error instanceof PaymentLookupError && (error.status === 404 || error.status === 400)) {
-      return { ok: false, code: "not_found" };
+      return { state: "not_found", paymentId };
     }
-    return { ok: false, code: "unavailable" };
+    return { state: "unavailable", paymentId };
   }
+
+  const state = stateFromMercadoPagoStatus(payment.status);
+  if (state !== "approved") return { state, paymentId: String(payment.id) };
 
   const validation = validatePayment(payment);
   if (!validation.valid) {
-    console.warn(`[MercadoPago] Pagamento ${validation.paymentId} recusado para cadastro: ${validation.reason}`);
-    return { ok: false, code: "not_eligible" };
+    console.warn(`[MercadoPago] Pagamento ${validation.paymentId} aprovado, mas não é do produto: ${validation.reason}`);
+    return { state: "invalid", paymentId: validation.paymentId };
   }
 
   const payerEmail = typeof payment.payer?.email === "string" ? payment.payer.email.trim().toLowerCase() : "";
-  if (!payerEmail) return { ok: false, code: "payer_email_missing" };
+  return { state: "approved", paymentId: validation.paymentId, payerEmail: payerEmail || null };
+}
 
-  return { ok: true, paymentId: validation.paymentId, payerEmail };
+export type PurchaseVerification =
+  | { ok: true; paymentId: string; payerEmail: string }
+  | { ok: false; code: "not_found" | "not_eligible" | "pending" | "payer_email_missing" | "unavailable" };
+
+/**
+ * Prova de compra para criar conta: só passa pagamento aprovado e válido, com e-mail do pagador.
+ * Sem payer.email não há como vincular a compra a uma pessoa — falha em vez de liberar.
+ */
+export async function verifyPurchaseForSignup(paymentId: string): Promise<PurchaseVerification> {
+  const lookup = await lookupPayment(paymentId);
+  switch (lookup.state) {
+    case "approved":
+      if (!lookup.payerEmail) return { ok: false, code: "payer_email_missing" };
+      return { ok: true, paymentId: lookup.paymentId, payerEmail: lookup.payerEmail };
+    case "pending":
+      return { ok: false, code: "pending" };
+    case "not_found":
+      return { ok: false, code: "not_found" };
+    case "unavailable":
+      return { ok: false, code: "unavailable" };
+    default:
+      return { ok: false, code: "not_eligible" };
+  }
 }

@@ -4,7 +4,7 @@ import { ArrowLeft } from "lucide-react";
 import { Brand } from "@/components/dashboard/Brand";
 import { FreeMission } from "@/components/free-mission/FreeMission";
 
-const title = "Missão grátis: seu primeiro código | DEV NO BOLSO";
+const title = "Missão grátis: seu primeiro código | Dev no Bolso";
 const description =
   "Escreva seu primeiro código pelo celular e veja o resultado na hora. Sem cadastro, leva uns 3 minutos.";
 
@@ -12,8 +12,16 @@ export const metadata: Metadata = {
   title,
   description,
   alternates: { canonical: "/experimentar" },
-  // openGraph do layout é substituído (não mesclado), então repete os campos fixos.
-  openGraph: { title, description, url: "/experimentar", siteName: "DEV NO BOLSO", locale: "pt_BR", type: "website" },
+  // openGraph do layout é substituído (não mesclado), então repete os campos fixos — inclusive a imagem.
+  openGraph: {
+    title,
+    description,
+    url: "/experimentar",
+    siteName: "Dev no Bolso",
+    locale: "pt_BR",
+    type: "website",
+    images: [{ url: "/opengraph-image.png", width: 1200, height: 630, alt: "Dev no Bolso" }],
+  },
 };
 
 // Página pública: não exige login. O exercício roda inteiro no navegador.

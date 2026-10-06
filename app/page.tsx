@@ -8,31 +8,32 @@ import { CheckoutButton } from "@/components/CheckoutButton";
 import { FreeMissionLink } from "@/components/FreeMissionLink";
 import { TrackLandingView } from "@/components/TrackEvent";
 import { Bot, Globe, ListChecks, MessageCircle } from "lucide-react";
-import { OFFER } from "@/lib/offer";
+import { CTA, OFFER } from "@/lib/offer";
 
 const outcomes = [
   "Um site seu publicado e funcionando na internet.",
   "Um projeto organizado no GitHub para continuar evoluindo.",
-  "Um jeito prático de usar IA para entender, escrever e revisar código.",
+  "Prompts prontos para pedir ajuda à IA quando travar — e conferir a resposta.",
   "Um link online para mostrar seu projeto a qualquer pessoa.",
 ];
 
+// Espelha as aulas reais do Módulo 01 (lib/course.ts). Não prometer etapa que não existe.
 const path = [
   {
-    title: "Primeiro código",
-    desc: "Você escreve, muda e vê o resultado na hora. É exatamente isso que a missão grátis mostra.",
+    title: "Sua conta no GitHub",
+    desc: "Você cria a conta gratuita onde o seu código e o seu site vão morar.",
   },
   {
-    title: "Pequenos projetos",
-    desc: "Exercícios curtos que juntam o que você aprendeu, um passo de cada vez.",
+    title: "Seu primeiro arquivo de código",
+    desc: "Você cria o repositório e o index.html a partir de um modelo pronto, já com o seu nome.",
   },
   {
-    title: "Projeto web",
-    desc: "Uma página sua, com o seu conteúdo, organizada num repositório no GitHub.",
+    title: "Seu site no ar",
+    desc: "Você ativa o GitHub Pages e ganha um link público para mandar para quem quiser.",
   },
   {
-    title: "Publicação",
-    desc: "Seu site no ar pelo GitHub Pages, com um link para compartilhar.",
+    title: "Alterar e republicar",
+    desc: "Você muda o site pelo celular e vê a alteração aparecer online. Esse ciclo é seu para sempre.",
   },
 ];
 
@@ -45,12 +46,12 @@ const howItWorks = [
   {
     icon: ListChecks,
     title: "Missões de poucos minutos",
-    desc: "Cada aula tem uma teoria curta, uma missão prática e uma validação para você saber que deu certo.",
+    desc: "Cada aula tem uma teoria curta, uma missão prática e uma entrega para você saber que deu certo.",
   },
   {
     icon: Bot,
     title: "IA como apoio",
-    desc: "Você aprende a pedir explicações e revisões para a IA — e a conferir o que ela responde.",
+    desc: "Cada aula traz um prompt pronto para pedir ajuda à IA quando travar — e você aprende a conferir a resposta.",
   },
   {
     icon: MessageCircle,
@@ -94,22 +95,15 @@ export default function HomePage() {
               com um site no ar para mostrar.
             </p>
 
-            <div className="mx-auto mt-7 max-w-sm rounded-2xl border border-white/[0.08] bg-[#0A0F0D] p-4">
-              <p className="text-sm text-slate-300">
-                Acesso completo por <strong className="font-bold text-[#F5F7F6]">{OFFER.priceLabel} uma vez</strong>
-              </p>
-              <div className="mt-4 flex flex-col gap-3">
-                <FreeMissionLink id="hero-free-mission" label="Começar missão grátis" />
-                <p className="text-xs text-slate-400">Leva poucos minutos · sem cadastro</p>
-                <CheckoutButton
-                  id="hero-checkout"
-                  placement="hero"
-                  variant="secondary"
-                  size="default"
-                  label="Quero acesso completo"
-                />
-                <p className="text-xs text-slate-400">Pagamento único · sem mensalidade · Mercado Pago</p>
-              </div>
+            <div className="mx-auto mt-8 flex max-w-sm flex-col gap-3">
+              <CheckoutButton id="hero-checkout" placement="hero" label={CTA.buy} />
+              <p className="text-xs text-slate-400">Pagamento único · sem mensalidade</p>
+              <FreeMissionLink
+                id="hero-free-mission"
+                variant="secondary"
+                size="default"
+                label="Testar grátis antes"
+              />
             </div>
           </div>
 
@@ -138,7 +132,7 @@ export default function HomePage() {
         {/* 2. Caminho de evolução */}
         <section aria-labelledby="caminho-titulo" className="border-t border-white/[0.06] px-4 py-16 sm:px-6 sm:py-24">
           <div className="mx-auto max-w-2xl">
-            <SectionHeading id="caminho-titulo" eyebrow="O caminho" title="Do primeiro código ao site publicado" />
+            <SectionHeading id="caminho-titulo" eyebrow="O caminho" title="As 4 aulas, do zero ao site publicado" />
             <ol className="mt-8 border-l border-white/[0.1] pl-6">
               {path.map((step, i) => (
                 <li key={step.title} className="relative pb-8 last:pb-0">
@@ -148,7 +142,7 @@ export default function HomePage() {
                     }`}
                     aria-hidden
                   />
-                  <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-slate-400">Etapa {i + 1}</p>
+                  <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-slate-400">Aula {i + 1}</p>
                   <h3 className="mt-1 text-lg font-bold">{step.title}</h3>
                   <p className="mt-1 text-[15px] leading-relaxed text-slate-400">{step.desc}</p>
                 </li>
@@ -185,21 +179,14 @@ export default function HomePage() {
         <section aria-labelledby="final-titulo" className="border-t border-white/[0.06] px-4 py-16 sm:px-6 sm:py-24">
           <div className="mx-auto max-w-xl text-center">
             <h2 id="final-titulo" className="text-2xl sm:text-3xl font-black tracking-tight text-balance">
-              Comece pela missão grátis.
+              Seu primeiro site no ar, pelo celular.
             </h2>
             <p className="mt-3 text-base leading-relaxed text-slate-300">
-              Em poucos minutos você escreve seu primeiro código e vê o resultado na tela. Se gostar, o acesso completo
-              custa {OFFER.priceLabel}, {OFFER.billing}.
+              {OFFER.priceLabel}, {OFFER.billing}. Você paga, cria sua conta e já começa a Aula 1.
             </p>
             <div className="mx-auto mt-8 flex max-w-sm flex-col gap-3">
-              <FreeMissionLink id="final-free-mission" label="Começar missão grátis" />
-              <CheckoutButton
-                id="final-checkout"
-                placement="final"
-                variant="secondary"
-                size="default"
-                label="Quero acesso completo"
-              />
+              <CheckoutButton id="final-checkout" placement="final" label={CTA.buy} />
+              <FreeMissionLink id="final-free-mission" variant="secondary" size="default" label="Testar grátis antes" />
             </div>
           </div>
         </section>
